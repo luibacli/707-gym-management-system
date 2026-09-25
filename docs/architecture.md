@@ -1,0 +1,51 @@
+# Architecture
+
+Nuxt 4 full-stack application: the Vue frontend and the API run in one Nuxt app.
+There is no separate backend.
+
+## Data flow
+
+```text
+Component → Composable / Pinia → Nuxt API route (server/api) → Service (server/services)
+          → Mongoose model (server/models) → MongoDB
+```
+
+Layers are skipped when they add nothing. The boundaries and rules are in `CLAUDE.md`.
+
+## Directory layout
+
+| Path                     | Purpose                                              |
+| ------------------------ | ---------------------------------------------------- |
+| `app/`                   | Frontend: `app.vue`, pages, components, composables, stores |
+| `app/assets/css/main.css`| Tailwind entry and CSS layer order                   |
+| `app/theme/`             | PrimeVue theme preset (ADR-004)                      |
+| `server/api/`            | API routes (HTTP concerns, validation)               |
+| `server/services/`       | Business logic (planned)                             |
+| `server/models/`         | Mongoose models (planned)                            |
+| `server/plugins/`        | Nitro plugins; `mongoose.ts` opens the DB connection |
+| `shared/`                | Code shared by client and server, e.g. Zod schemas (ADR-002) |
+| `test/unit/`             | Vitest, Node environment                             |
+| `test/nuxt/`             | Vitest, Nuxt runtime environment                     |
+| `test/e2e/`              | Playwright                                           |
+
+Folders marked "planned" are created when the first feature needs them.
+
+## Key modules
+
+| Concern       | Choice                                        | Record  |
+| ------------- | --------------------------------------------- | ------- |
+| Auth          | `nuxt-auth-utils` (sealed cookie sessions)    | ADR-001 |
+| Validation    | Zod + h3 validated-input helpers              | ADR-002 |
+| API format    | Nuxt `createError` conventions, no wrapper    | ADR-003 |
+| UI            | PrimeVue 4.5 styled (Aura) + Tailwind v4      | ADR-004 |
+| Dev database  | MongoDB Atlas; Docker deferred                | ADR-005 |
+| State         | Pinia via `@pinia/nuxt`                       | —       |
+
+## Database connection
+
+`server/plugins/mongoose.ts` connects once when the server starts, using
+`runtimeConfig.mongodbUri` (`NUXT_MONGODB_URI`):
+
+- If the variable is missing, the server throws at startup.
+- If the connection fails, the error is logged. Database operations then fail
+  and return 500 errors.

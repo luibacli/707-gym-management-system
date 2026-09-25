@@ -1,0 +1,8 @@
+/*
+ * Layer order: PrimeVue component styles sit below Tailwind utilities,
+ * so utility classes can override component styling when needed.
+ */
+@layer theme, base, primevue, components, utilities;
+
+@import "tailwindcss";
+@import "tailwindcss-primeui";
