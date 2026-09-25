@@ -105,15 +105,22 @@ function onPage(event: DataTablePageEvent) {
           <template #body="{ data: member }">
             <NuxtLink
               :to="`/members/${member.id}`"
-              class="font-medium hover:text-primary-700 hover:underline"
+              class="font-medium wrap-anywhere hover:text-primary-700 hover:underline"
             >
               {{ member.lastName }}, {{ member.firstName }}
             </NuxtLink>
           </template>
         </Column>
+        <Column header="Status">
+          <template #body="{ data: member }">
+            <StatusTag :status="member.status" />
+          </template>
+        </Column>
         <Column
           field="phone"
           header="Phone"
+          header-class="hidden sm:table-cell"
+          body-class="hidden sm:table-cell"
         />
         <Column
           header="Email"

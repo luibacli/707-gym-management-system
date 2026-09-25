@@ -132,3 +132,18 @@ All staff accounts have the same full access. There is no admin/staff split in t
 Staff management is out of scope (`project-overview.md` §8). Staff accounts are
 created and deactivated by the developer with a server-side command-line
 script. There is no in-app staff management screen and no self-registration.
+
+## Implementation Notes
+
+- **"No membership" for scheduled-only members.** A member whose only membership
+  hasn't started yet shows "No membership" (BR-S3 as written). Their scheduled
+  membership is still listed on their page.
+
+## Open Questions
+
+These came up during implementation. They aren't business rules yet, so the
+current behavior is the simplest option, not a decision.
+
+- **Deleting a membership entered by mistake.** It currently can't be deleted,
+  only edited.
+- **Memberships for archived members.** Staff can currently still add or edit them.

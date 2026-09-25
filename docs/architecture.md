@@ -20,10 +20,10 @@ Layers are skipped when they add nothing. The boundaries and rules are in `CLAUD
 | `app/assets/css/main.css`| Tailwind entry and CSS layer order                   |
 | `app/theme/`             | PrimeVue theme preset (ADR-004)                      |
 | `server/api/`            | API routes (HTTP concerns, validation)               |
-| `server/services/`       | Business logic and queries (e.g. `members.ts`); returns `null` for not-found, and routes map that to HTTP errors |
-| `server/models/`         | Mongoose models (`User`, `Member`)                   |
+| `server/services/`       | Business logic and queries (`members.ts`, `memberships.ts`). Services return `null` or a result union, and routes map those to HTTP errors |
+| `server/models/`         | Mongoose models (`User`, `Member`, `Membership`)     |
 | `server/plugins/`        | Nitro plugins; `mongoose.ts` opens the DB connection |
-| `shared/`                | Code shared by client and server: Zod schemas (ADR-002), API types, date helpers (ADR-006) |
+| `shared/`                | Code shared by client and server: Zod schemas (ADR-002), API types, date helpers (ADR-006), and membership rules (`shared/utils/membership.ts`: expiry, status, overlap, renewal start) |
 | `test/unit/`             | Vitest, Node environment                             |
 | `test/nuxt/`             | Vitest, Nuxt runtime environment                     |
 | `test/integration/`      | Vitest with in-memory MongoDB, for services (ADR-007) |

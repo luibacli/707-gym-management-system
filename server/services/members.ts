@@ -2,6 +2,8 @@ import type { HydratedDocument } from 'mongoose'
 import { MEMBER_COLLATION, MemberModel, type MemberFields } from '../models/Member'
 import { MEMBER_PAGE_SIZE, type MemberInput, type MemberListQuery } from '../../shared/schemas/member'
 import type { ListResponse, Member } from '../../shared/types/member'
+import type { MemberStatus } from '../../shared/utils/membership'
+import { getMemberStatuses } from './memberships'
 
 const EDITABLE_FIELDS = [
   'firstName', 'lastName', 'phone', 'email', 'birthDate', 'address',
@@ -10,7 +12,7 @@ const EDITABLE_FIELDS = [
 
 const SEARCH_FIELDS = ['firstName', 'lastName', 'phone', 'email'] as const
 
-function toMember(doc: HydratedDocument<MemberFields>): Member {
+function toMember(doc: HydratedDocument<MemberFields>, status: MemberStatus): Member {
   return {
     id: doc.id as string,
     firstName: doc.firstName,
@@ -23,6 +25,7 @@ function toMember(doc: HydratedDocument<MemberFields>): Member {
     emergencyContactPhone: doc.emergencyContactPhone ?? undefined,
     notes: doc.notes ?? undefined,
     archived: doc.archived,
+    status,
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   }
@@ -55,17 +58,29 @@ export async function listMembers({ search, archived, page }: MemberListQuery): 
     MemberModel.countDocuments(filter),
   ])
 
-  return { items: docs.map(toMember), total, page, pageSize: MEMBER_PAGE_SIZE }
+  const statuses = await getMemberStatuses(docs.map(doc => doc._id))
+  return {
+    items: docs.map(doc => toMember(doc, statuses.get(doc.id as string) ?? 'none')),
+    total,
+    page,
+    pageSize: MEMBER_PAGE_SIZE,
+  }
+}
+
+/** Maps a member document to the API shape, including its current status. */
+async function withStatus(doc: HydratedDocument<MemberFields>): Promise<Member> {
+  const statuses = await getMemberStatuses([doc._id])
+  return toMember(doc, statuses.get(doc.id as string) ?? 'none')
 }
 
 export async function getMember(id: string): Promise<Member | null> {
   const doc = await MemberModel.findById(id)
-  return doc ? toMember(doc) : null
+  return doc ? withStatus(doc) : null
 }
 
 export async function createMember(input: MemberInput): Promise<Member> {
   const doc = await MemberModel.create(input)
-  return toMember(doc)
+  return toMember(doc, 'none')
 }
 
 /** Replaces all editable fields; optional fields left empty are cleared. */
@@ -77,10 +92,10 @@ export async function updateMember(id: string, input: MemberInput): Promise<Memb
     doc.set(field, input[field])
   }
   await doc.save()
-  return toMember(doc)
+  return withStatus(doc)
 }
 
 export async function setMemberArchived(id: string, archived: boolean): Promise<Member | null> {
   const doc = await MemberModel.findByIdAndUpdate(id, { archived }, { returnDocument: 'after' })
-  return doc ? toMember(doc) : null
+  return doc ? withStatus(doc) : null
 }

@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import type { Member } from '#shared/types/member'
+import type { Member, Membership } from '#shared/types/member'
 
 const route = useRoute()
 const id = route.params.id as string
 
 const { data: member, error, refresh } = await useFetch<Member>(`/api/members/${id}`)
+const {
+  data: memberships,
+  error: membershipsError,
+  refresh: refreshMemberships,
+} = await useFetch<Membership[]>(`/api/members/${id}/memberships`)
 const notFound = computed(() => error.value?.statusCode === 404)
 const fullName = computed(() => (member.value ? `${member.value.firstName} ${member.value.lastName}` : ''))
 
@@ -36,6 +41,20 @@ function confirmArchive() {
     rejectProps: { label: 'Cancel', severity: 'secondary', text: true },
     accept: () => setArchived(true),
   })
+}
+
+const dialogVisible = ref(false)
+const editingMembership = ref<Membership>()
+const suggestedStartDate = computed(() => suggestStartDate(memberships.value ?? [], todayInGymTimeZone()))
+
+function openMembershipDialog(membership?: Membership) {
+  editingMembership.value = membership
+  dialogVisible.value = true
+}
+
+async function onMembershipSaved() {
+  // The member's status depends on their memberships.
+  await Promise.all([refreshMemberships(), refresh()])
 }
 
 const details = computed(() => {
@@ -101,6 +120,7 @@ const details = computed(() => {
           <h1 class="text-xl font-semibold">
             {{ fullName }}
           </h1>
+          <StatusTag :status="member.status" />
           <Tag
             v-if="member.archived"
             value="Archived"
@@ -152,6 +172,87 @@ const details = computed(() => {
           </dd>
         </div>
       </dl>
+
+      <section
+        aria-labelledby="memberships-heading"
+        class="rounded-lg border border-surface-200 bg-surface-0"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-surface-200 p-4 sm:px-6">
+          <h2
+            id="memberships-heading"
+            class="font-semibold"
+          >
+            Memberships
+          </h2>
+          <Button
+            label="Add membership"
+            size="small"
+            :disabled="!memberships"
+            @click="openMembershipDialog()"
+          />
+        </div>
+
+        <div
+          v-if="membershipsError"
+          class="flex flex-col items-start gap-3 p-4 sm:px-6"
+        >
+          <Message
+            severity="error"
+            size="small"
+          >
+            {{ getApiErrorMessage(membershipsError) }}
+          </Message>
+          <Button
+            label="Try again"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="refreshMemberships()"
+          />
+        </div>
+        <p
+          v-else-if="!memberships?.length"
+          class="p-4 text-surface-600 sm:px-6"
+        >
+          No memberships yet.
+        </p>
+        <ul
+          v-else
+          class="divide-y divide-surface-200"
+        >
+          <li
+            v-for="item in memberships"
+            :key="item.id"
+            class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6"
+          >
+            <div class="flex min-w-0 flex-col">
+              <span class="font-medium">{{ PLAN_LABELS[item.plan] }}</span>
+              <span class="text-sm text-surface-600">
+                {{ formatCalendarDate(item.startDate) }} – {{ formatCalendarDate(item.expiryDate) }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <StatusTag :status="item.status" />
+              <Button
+                label="Edit"
+                severity="secondary"
+                size="small"
+                text
+                :aria-label="`Edit ${PLAN_LABELS[item.plan]} membership starting ${formatCalendarDate(item.startDate)}`"
+                @click="openMembershipDialog(item)"
+              />
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <MembershipDialog
+        v-model:visible="dialogVisible"
+        :member-id="member.id"
+        :membership="editingMembership"
+        :suggested-start-date="suggestedStartDate"
+        @saved="onMembershipSaved"
+      />
     </template>
   </div>
 </template>

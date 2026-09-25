@@ -50,6 +50,31 @@ email (a case-insensitive "contains" match, with regex characters escaped). This
 is fine at single-gym volume. A text index isn't used, because it can't do
 partial matches on phone numbers.
 
+### `memberships` (model `MembershipModel`, `server/models/Membership.ts`)
+
+A member's membership periods (BR-H1). Renewals are new records (BR-H3).
+
+| Field        | Type     | Notes                                                    |
+| ------------ | -------- | -------------------------------------------------------- |
+| `memberId`   | ObjectId | Required, refers to `members`                            |
+| `plan`       | String   | `monthly` or `annual` (BR-P1)                            |
+| `startDate`  | String   | `"YYYY-MM-DD"` (ADR-006)                                 |
+| `expiryDate` | String   | `"YYYY-MM-DD"`. Always calculated on the server from start date and plan (BR-P2, BR-P3) |
+| `createdAt`, `updatedAt` | Date | Mongoose timestamps                          |
+
+**Status is not stored.** It depends on today's date, so it's calculated on every
+read by `shared/utils/membership.ts` (BR-S1–S3).
+
+**Indexes:** `{ memberId, startDate: -1 }`. It serves a member's history (newest
+first), the overlap check, and the status lookup for a page of members
+(`memberId: { $in: [...] }`).
+
+**Overlaps (BR-H2):** checked before every create and update. The check and the
+write are separate operations, so two simultaneous saves for the same member
+could both pass. This is accepted at single-gym volume.
+
+**Deletion:** memberships can't be deleted (see the open questions in `business-rules.md`).
+
 ## Notes
 
 - Mongoose `autoIndex` is on (the default), so indexes are created when the app starts.

@@ -24,7 +24,7 @@ async function signOut() {
   <div class="min-h-screen bg-surface-50 text-surface-900">
     <header class="border-b border-surface-200 bg-surface-0">
       <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-        <div class="flex min-w-0 items-center gap-4 sm:gap-6">
+        <div class="flex min-w-0 items-center gap-2 sm:gap-6">
           <NuxtLink
             to="/"
             class="flex shrink-0 items-center gap-2"
@@ -60,6 +60,7 @@ async function signOut() {
             label="Sign out"
             severity="secondary"
             size="small"
+            class="shrink-0 whitespace-nowrap"
             text
             :loading="signingOut"
             @click="signOut"

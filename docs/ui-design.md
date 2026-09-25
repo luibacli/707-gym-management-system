@@ -97,3 +97,23 @@ professional software interface.
 - Success after save, archive or restore: a PrimeVue `Toast` (bottom right, 3s).
 - Archiving (hiding a record) asks for confirmation with `ConfirmDialog`. Actions
   that can be undone right away (restore) don't.
+
+**Status tags** (`StatusTag`)
+
+- Membership and member statuses use PrimeVue `Tag` with semantic colors:
+  - Active: success
+  - Near expiry: warn
+  - Expired: danger
+  - Scheduled: info
+  - No membership: secondary
+- Tags never wrap. Long text in the neighboring column wraps instead
+  (`wrap-anywhere` on names).
+
+**Sub-records on a detail page** (e.g. memberships)
+
+- A bordered section with the heading and "Add …" button in a header row. Items
+  appear as a divided list, not a table, so they stack naturally on mobile.
+- Add and edit happen in a modal `Dialog` (`max-w-md`), with the form's submit
+  button in the dialog footer.
+- Values the server calculates (e.g. the expiry date) are shown as a live preview
+  in the dialog. They aren't editable.

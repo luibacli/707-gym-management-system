@@ -69,6 +69,27 @@ with `memberInputSchema` (`shared/schemas/member.ts`).
   - 404 `NOT_FOUND` for an unknown ID or a malformed one
 - There is no DELETE. Members are archived instead (BR-M2).
 
+### Memberships
+
+All routes require a staff session. The body is `{ plan: 'monthly' | 'annual', startDate: 'YYYY-MM-DD' }`
+(`membershipInputSchema`). The expiry date is never accepted from the client.
+
+| Method & path                                      | Purpose                              | Success |
+| -------------------------------------------------- | ------------------------------------ | ------- |
+| `GET /api/members/:id/memberships`                 | A member's memberships, newest first | 200 `Membership[]` |
+| `POST /api/members/:id/memberships`                | Add a membership (or renewal)        | 201 `Membership` |
+| `PATCH /api/members/:id/memberships/:membershipId` | Change plan or start date            | 200 `Membership` |
+
+- **`Membership` response:** `{ id, memberId, plan, startDate, expiryDate, status, createdAt, updatedAt }`.
+  `status` is one of `scheduled | active | near-expiry | expired`, calculated for today in Asia/Manila.
+- **Errors:**
+  - 400 `VALIDATION_ERROR`
+  - 404 `NOT_FOUND` for an unknown member or membership, or a membership that belongs to another member
+  - 409 `CONFLICT` when the dates overlap another membership of the same member (BR-H2).
+    The message names the conflicting dates.
+- **Member responses** (list, get, create, update, archive, restore) now include
+  `status`: `active | near-expiry | expired | none` (BR-S3).
+
 ## Protecting routes
 
 Every staff-only route starts with `await requireStaff(event)` (`server/utils/requireStaff.ts`).
