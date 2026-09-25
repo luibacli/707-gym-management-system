@@ -20,12 +20,13 @@ Layers are skipped when they add nothing. The boundaries and rules are in `CLAUD
 | `app/assets/css/main.css`| Tailwind entry and CSS layer order                   |
 | `app/theme/`             | PrimeVue theme preset (ADR-004)                      |
 | `server/api/`            | API routes (HTTP concerns, validation)               |
-| `server/services/`       | Business logic (planned)                             |
-| `server/models/`         | Mongoose models (planned)                            |
+| `server/services/`       | Business logic and queries (e.g. `members.ts`); returns `null` for not-found, and routes map that to HTTP errors |
+| `server/models/`         | Mongoose models (`User`, `Member`)                   |
 | `server/plugins/`        | Nitro plugins; `mongoose.ts` opens the DB connection |
-| `shared/`                | Code shared by client and server, e.g. Zod schemas (ADR-002) |
+| `shared/`                | Code shared by client and server: Zod schemas (ADR-002), API types, date helpers (ADR-006) |
 | `test/unit/`             | Vitest, Node environment                             |
 | `test/nuxt/`             | Vitest, Nuxt runtime environment                     |
+| `test/integration/`      | Vitest with in-memory MongoDB, for services (ADR-007) |
 | `test/e2e/`              | Playwright                                           |
 
 Folders marked "planned" are created when the first feature needs them.
@@ -39,6 +40,8 @@ Folders marked "planned" are created when the first feature needs them.
 | API format    | Nuxt `createError` conventions, no wrapper    | ADR-003 |
 | UI            | PrimeVue 4.5 styled (Aura) + Tailwind v4      | ADR-004 |
 | Dev database  | MongoDB Atlas; Docker deferred                | ADR-005 |
+| Dates         | Calendar dates as `YYYY-MM-DD` strings        | ADR-006 |
+| Test DBs      | In-memory for integration; `707_e2e` for e2e  | ADR-007 |
 | State         | Pinia via `@pinia/nuxt`                       | —       |
 
 ## Database connection

@@ -23,6 +23,8 @@ to run them are listed under `allowBuilds` in `pnpm-workspace.yaml`.
 | ----------------------- | -------- | ------------------------------------------------ |
 | `NUXT_MONGODB_URI`      | Yes      | MongoDB connection string. The server won't start without it. |
 | `NUXT_SESSION_PASSWORD` | Yes (prod) | Session cookie encryption key, 32+ characters. Generated automatically in dev if empty. |
+| `E2E_MONGODB_URI`       | No       | Separate database for e2e tests (ADR-007), e.g. `…/707_e2e` |
+| `E2E_STAFF_EMAIL`, `E2E_STAFF_PASSWORD` | No | Staff account in the e2e database, created with `pnpm staff` using `NUXT_MONGODB_URI=<e2e uri>` |
 
 ## Staff accounts
 
@@ -48,12 +50,17 @@ pnpm staff deactivate --email staff@example.com
 | Tests (watch)   | `pnpm test:watch`  |
 | E2E tests       | `pnpm test:e2e`    |
 
-The successful sign-in e2e test runs only when `E2E_STAFF_EMAIL` and
-`E2E_STAFF_PASSWORD` are set, for an active staff account in the dev database.
-Otherwise it is skipped.
+`pnpm test:e2e` starts its own dev server on port 3100. It never reuses a
+`pnpm dev` server, so it can't write to the dev database. It loads `.env`, uses
+`E2E_MONGODB_URI` when set, and runs in Desktop Chrome and on a mobile viewport
+(Pixel 7). Tests that sign in need `E2E_STAFF_*`, and tests that write data also
+need `E2E_MONGODB_URI`. Otherwise those tests are skipped.
 
-`pnpm test:e2e` starts the dev server itself (or reuses one already running on
-port 3000). It runs in Desktop Chrome and on a mobile viewport (Pixel 7).
+To create the e2e staff account:
+
+```bash
+NUXT_MONGODB_URI="<E2E_MONGODB_URI value>" pnpm staff create --email e2e@707gym.test --name "E2E Test Staff"
+```
 
 ## Testing layout
 
@@ -61,6 +68,8 @@ port 3000). It runs in Desktop Chrome and on a mobile viewport (Pixel 7).
   (e.g. status and date rules).
 - `test/nuxt/`: Vitest in the Nuxt environment (`@nuxt/test-utils`), for
   components and composables.
+- `test/integration/`: Vitest with an in-memory MongoDB (`mongodb-memory-server`),
+  for services and queries. The first run downloads a MongoDB binary (ADR-007).
 - `test/e2e/`: Playwright.
 
 ## Notes

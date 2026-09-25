@@ -26,9 +26,7 @@ The production hosting target hasn't been decided.
 
 - Positive: no local database to install or run.
 - Negative: development needs an internet connection and an Atlas account.
-- Negative: automated tests that need a database will need their own strategy
-  (e.g. an in-memory MongoDB). That's a separate decision, made when the first
-  such test is written.
+- Automated tests that need a database: see ADR-007.
 
 ## Date
 

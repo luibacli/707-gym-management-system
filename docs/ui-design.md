@@ -58,3 +58,42 @@ professional software interface.
   (severity `error`) at the top of the form.
 - The primary submit button is full width in narrow forms and shows its loading
   state while submitting.
+
+**Navigation**
+
+- The top bar has text links (Dashboard, Members). The active link gets a light
+  brand tint (`bg-primary-50 text-primary-700`) and `aria-current="page"`.
+- Detail and form pages start with a small "← Back" text link above the page title.
+
+**List pages** (e.g. Members)
+
+- The title sits on the left with the primary action button ("Add member") on the right.
+- Below it: a search input on the left, and a `SelectButton` view toggle
+  (e.g. Active / Archived) on the right. They stack on mobile.
+- A PrimeVue `DataTable` in a white bordered panel, with server-side pagination.
+  The first column is a link to the record. Secondary columns hide on small
+  screens (`hidden md:table-cell`).
+- Empty states explain why the list is empty (no search matches, no archived
+  records, no records yet).
+- The error state shows a `Message` plus a "Try again" button.
+
+**Detail pages**
+
+- The title, with a status `Tag` if needed (e.g. "Archived"). Actions sit on the
+  right: secondary outlined buttons for Archive/Restore, and a primary Edit button.
+- Fields appear as a two-column definition list in a white bordered panel.
+  Empty values show a muted "—".
+
+**Record forms** (e.g. add/edit member)
+
+- Group fields into white bordered sections with small headings. Use two columns
+  from `sm` upward.
+- Use `LabeledField` for the label, the "(optional)" marker and the error text.
+  Mark optional fields, not required ones.
+- Actions go at the bottom right: text "Cancel", then the primary submit button.
+
+**Feedback**
+
+- Success after save, archive or restore: a PrimeVue `Toast` (bottom right, 3s).
+- Archiving (hiding a record) asks for confirmation with `ConfirmDialog`. Actions
+  that can be undone right away (restore) don't.

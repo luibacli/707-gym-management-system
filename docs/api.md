@@ -36,6 +36,39 @@ Signs in a staff member and sets the session cookie.
 
 These come from the module; they are not defined in `server/api/`.
 
+### Members
+
+All member routes require a staff session (`requireStaff`). The body is validated
+with `memberInputSchema` (`shared/schemas/member.ts`).
+
+| Method & path                      | Purpose                         | Success |
+| ---------------------------------- | ------------------------------- | ------- |
+| `GET /api/members`                 | List members                    | 200 `{ items, total, page, pageSize }` |
+| `POST /api/members`                | Create a member                 | 201 `Member` |
+| `GET /api/members/:id`             | Get one member                  | 200 `Member` |
+| `PATCH /api/members/:id`           | Update a member                 | 200 `Member` |
+| `POST /api/members/:id/archive`    | Archive (BR-M2)                 | 200 `Member` |
+| `POST /api/members/:id/restore`    | Restore (BR-M2)                 | 200 `Member` |
+
+- **List query:**
+  - `search`: optional, up to 100 characters. Every word must match name, phone or email.
+  - `archived`: `true` or `false`, default `false`.
+  - `page`: 1 or higher, default 1.
+  - The page size is fixed at 20. Results are sorted by last name, then first name.
+- **Member body (POST and PATCH):**
+  - Required: `firstName`, `lastName`, `phone`.
+  - Optional: `email`, `birthDate` (`YYYY-MM-DD`, not in the future),
+    `address`, `emergencyContactName`, `emergencyContactPhone`, `notes`.
+  - **PATCH replaces all editable fields.** An optional field that is omitted or
+    empty is cleared.
+- **`Member` response:** all the fields above, plus `id`, `archived`, and
+  `createdAt` / `updatedAt` (ISO timestamps). Optional fields that aren't set are omitted.
+- **Errors:**
+  - 400 `VALIDATION_ERROR` with `fieldErrors`
+  - 401 `UNAUTHENTICATED`
+  - 404 `NOT_FOUND` for an unknown ID or a malformed one
+- There is no DELETE. Members are archived instead (BR-M2).
+
 ## Protecting routes
 
 Every staff-only route starts with `await requireStaff(event)` (`server/utils/requireStaff.ts`).

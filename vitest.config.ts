@@ -11,6 +11,16 @@ export default defineConfig({
           environment: 'node',
         },
       },
+      {
+        test: {
+          name: 'integration',
+          include: ['test/integration/**/*.{test,spec}.ts'],
+          environment: 'node',
+          setupFiles: ['test/integration/setup.ts'],
+          // First run downloads the MongoDB binary.
+          hookTimeout: 120_000,
+        },
+      },
       await defineVitestProject({
         test: {
           name: 'nuxt',

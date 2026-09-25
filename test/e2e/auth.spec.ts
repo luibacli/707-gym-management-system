@@ -1,10 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-
-// Interact only after Vue has hydrated; earlier clicks trigger a native form submit.
-async function gotoHydrated(page: Page, path: string) {
-  await page.goto(path)
-  await page.waitForFunction(() => !!(document.querySelector('#__nuxt') as { __vue_app__?: unknown } | null)?.__vue_app__)
-}
+import { expect, test } from '@playwright/test'
+import { gotoHydrated, hasStaffAccount, signIn } from './helpers'
 
 test.describe('staff sign-in', () => {
   test('redirects signed-out visitors to the login page', async ({ page }) => {
@@ -23,16 +18,10 @@ test.describe('staff sign-in', () => {
   })
 
   test('signs in and out with a valid staff account', async ({ page }) => {
-    const email = process.env.E2E_STAFF_EMAIL
-    const password = process.env.E2E_STAFF_PASSWORD
-    test.skip(!email || !password, 'Set E2E_STAFF_EMAIL and E2E_STAFF_PASSWORD to run this test.')
+    test.skip(!hasStaffAccount, 'Set E2E_STAFF_EMAIL and E2E_STAFF_PASSWORD to run this test.')
 
-    await gotoHydrated(page, '/login')
-    await page.getByLabel('Email').fill(email!)
-    await page.getByLabel('Password', { exact: true }).fill(password!)
-    await page.getByRole('button', { name: 'Sign in' }).click()
+    await signIn(page)
     await expect(page).toHaveURL(/\/$/)
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Sign out' }).click()
     await expect(page).toHaveURL(/\/login$/)

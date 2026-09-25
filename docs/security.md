@@ -1,6 +1,6 @@
 # Security
 
-> Status: staff sign-in implemented (ADR-001). No data routes exist yet.
+> Status: staff sign-in implemented (ADR-001). All member routes require a staff session.
 
 ## Authentication
 
@@ -24,9 +24,9 @@
   checks that the user is still active in the database.
 - The global client middleware (`app/middleware/auth.global.ts`) only handles
   redirects. It is not a security boundary.
-- Known gap: the client-side session state (`useUserSession`) of a deactivated user
-  still shows them as signed in until an API call returns 401. Once data routes exist,
-  the client should sign out and redirect when it gets a 401.
+- Known gap: a deactivated user (or one whose session expired) still looks signed in
+  on the client. Their API calls are rejected with 401, and pages show "Please sign in
+  to continue.", but they aren't redirected to `/login` automatically yet.
 
 ## Sensitive data
 
