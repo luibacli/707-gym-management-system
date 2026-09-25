@@ -22,7 +22,9 @@ Layers are skipped when they add nothing. The boundaries and rules are in `CLAUD
 | `server/api/`            | API routes (HTTP concerns, validation)               |
 | `server/services/`       | Business logic and queries (`members.ts`, `memberships.ts`, `dashboard.ts`). Services return `null` or a result union, and routes map those to HTTP errors |
 | `server/models/`         | Mongoose models (`User`, `Member`, `Membership`)     |
-| `server/plugins/`        | Nitro plugins; `mongoose.ts` opens the DB connection |
+| `server/plugins/`        | Nitro plugins: `mongoose.ts` opens the DB connection; `session.ts` validates sessions on load |
+| `app/plugins/api.ts`     | Provides `$api`: `$fetch` that redirects to `/login` on 401 |
+| `app/composables/useApi.ts` | `useFetch` built with `createUseFetch` on `$api` (SSR uses `useRequestFetch`) |
 | `shared/`                | Code shared by client and server: Zod schemas (ADR-002), API types, date helpers (ADR-006), and membership rules (`shared/utils/membership.ts`: expiry, status, overlap, renewal start) |
 | `test/unit/`             | Vitest, Node environment                             |
 | `test/nuxt/`             | Vitest, Nuxt runtime environment                     |

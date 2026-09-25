@@ -32,10 +32,21 @@ Errors are thrown with `createError({ statusCode, message, data: { code, fieldEr
 | 403    | `FORBIDDEN`        | Authenticated but not allowed                          |
 | 404    | `NOT_FOUND`        | The resource doesn't exist, or is outside what the user may see |
 | 409    | `CONFLICT`         | A business-rule conflict, e.g. overlapping memberships (BR-H2) |
+| 429    | `RATE_LIMITED`     | Too many attempts (sign-in); includes a `Retry-After` header. *Added 2026-09-26* |
 | 500    | `INTERNAL_ERROR`   | Unexpected error: generic message to the client, details in server logs |
 
 - `message` is always safe to show to users.
 - Database errors, stack traces and internal details are never sent to the client.
+
+### Amendment (2026-09-26)
+
+- Every API route is defined with `defineApiHandler` (`server/utils/errors.ts`),
+  never with plain `defineEventHandler`.
+  - Errors built with `apiError` pass through unchanged.
+  - Anything else is logged and returned as a generic 500 `INTERNAL_ERROR`.
+- `apiError` sets a standard `statusMessage` (e.g. "Unauthorized"). Before this,
+  h3 reported "Server Error" for every status.
+- Unknown `/api/*` routes return 404 `NOT_FOUND` as JSON, via `server/api/[...].ts`.
 
 ## Alternatives Considered
 

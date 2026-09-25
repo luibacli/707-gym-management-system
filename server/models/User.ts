@@ -8,6 +8,8 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true, select: false },
     active: { type: Boolean, required: true, default: true },
+    // Sessions that started before this are no longer valid (set by `pnpm staff set-password`).
+    passwordChangedAt: { type: Date },
   },
   { timestamps: true },
 )

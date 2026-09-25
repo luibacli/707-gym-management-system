@@ -2,6 +2,7 @@
  * Staff account management (BR-A2). There is no in-app staff management.
  *
  *   pnpm staff create --email <email> --name "<full name>"
+ *   pnpm staff set-password --email <email>
  *   pnpm staff deactivate --email <email>
  *
  * Passwords are prompted for interactively, so they never appear in shell history.
@@ -17,6 +18,7 @@ import { staffPasswordSchema } from '../shared/schemas/auth.ts'
 
 const USAGE = `Usage:
   pnpm staff create --email <email> --name "<full name>"
+  pnpm staff set-password --email <email>
   pnpm staff deactivate --email <email>`
 
 function promptHidden(question: string): Promise<string> {
@@ -62,11 +64,8 @@ function promptHidden(question: string): Promise<string> {
   })
 }
 
-async function createStaff(email: string, name: string) {
-  if (await User.exists({ email })) {
-    throw new Error(`A staff account with email ${email} already exists.`)
-  }
-
+/** Prompts twice for a new password and returns its hash. */
+async function promptNewPasswordHash(): Promise<string> {
   const password = await promptHidden('Password: ')
   const passwordCheck = staffPasswordSchema.safeParse(password)
   if (!passwordCheck.success) {
@@ -75,10 +74,28 @@ async function createStaff(email: string, name: string) {
   if (password !== await promptHidden('Confirm password: ')) {
     throw new Error('Passwords do not match.')
   }
+  return new Hash(new Scrypt({})).make(password)
+}
 
-  const passwordHash = await new Hash(new Scrypt({})).make(password)
+async function createStaff(email: string, name: string) {
+  if (await User.exists({ email })) {
+    throw new Error(`A staff account with email ${email} already exists.`)
+  }
+
+  const passwordHash = await promptNewPasswordHash()
   await User.create({ email, name, passwordHash })
   console.info(`Created staff account for ${name} <${email}>.`)
+}
+
+/** Sets a new password and signs the account out of existing sessions. */
+async function setStaffPassword(email: string) {
+  if (!(await User.exists({ email }))) {
+    throw new Error(`No staff account with email ${email}.`)
+  }
+
+  const passwordHash = await promptNewPasswordHash()
+  await User.updateOne({ email }, { passwordHash, passwordChangedAt: new Date() })
+  console.info(`Password updated for ${email}. Existing sessions for this account are signed out.`)
 }
 
 async function deactivateStaff(email: string) {
@@ -114,6 +131,9 @@ async function main() {
         throw new Error(`--name is required.\n\n${USAGE}`)
       }
       await createStaff(email.data, name)
+    }
+    else if (command === 'set-password') {
+      await setStaffPassword(email.data)
     }
     else if (command === 'deactivate') {
       await deactivateStaff(email.data)

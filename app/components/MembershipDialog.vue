@@ -5,6 +5,8 @@ import type { FieldErrors } from '#shared/types/api'
 import type { Membership } from '#shared/types/member'
 import { MEMBERSHIP_PLANS, PLAN_LABELS, type MembershipPlan } from '#shared/utils/membership'
 
+const { $api } = useNuxtApp()
+
 const props = defineProps<{
   memberId: string
   /** The membership to edit; omit to add a new one. */
@@ -60,8 +62,8 @@ async function save() {
   try {
     const base = `/api/members/${props.memberId}/memberships`
     const membership = props.membership
-      ? await $fetch<Membership>(`${base}/${props.membership.id}`, { method: 'PATCH', body: parsed.data })
-      : await $fetch<Membership>(base, { method: 'POST', body: parsed.data })
+      ? await $api<Membership>(`${base}/${props.membership.id}`, { method: 'PATCH', body: parsed.data })
+      : await $api<Membership>(base, { method: 'POST', body: parsed.data })
     toast.add({ severity: 'success', summary: isEdit.value ? 'Membership updated' : 'Membership added', life: 3000 })
     visible.value = false
     emit('saved', membership)

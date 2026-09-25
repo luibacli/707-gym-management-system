@@ -21,12 +21,16 @@
 
 - A single staff role with full access (BR-A1).
 - Every protected API route calls `requireStaff(event)`. It checks the session, then
-  checks that the user is still active in the database.
+  `isValidStaffSession`: the account is active, and the session started after the
+  last password change.
 - The global client middleware (`app/middleware/auth.global.ts`) only handles
   redirects. It is not a security boundary.
-- Known gap: a deactivated user (or one whose session expired) still looks signed in
-  on the client. Their API calls are rejected with 401, and pages show "Please sign in
-  to continue.", but they aren't redirected to `/login` automatically yet.
+- **Invalid sessions are signed out everywhere** (deactivated account, password
+  reset, expired cookie):
+  - On a full page load, the session `fetch` hook rejects the session before the
+    page renders, and the page shows as signed out.
+  - On client-side calls, `useApi` / `$api` handle the 401 by clearing the session
+    and redirecting to `/login?reason=session-ended`.
 
 ## Sensitive data
 
@@ -37,7 +41,19 @@
 - Server-only config (`mongodbUri`) sits in non-public `runtimeConfig` and is
   never exposed to the client.
 
-## Open items
+## Brute-force protection
 
-- Login rate limiting / brute-force protection: not decided yet (ADR-001).
+- **Limits:** 5 failed sign-ins per email, or 20 per IP, within 15 minutes → 429
+  `RATE_LIMITED` with `Retry-After`. These are security defaults, not client
+  requirements.
+- A successful sign-in resets that email's count.
+- **Blocking by email is intentional.** Someone who knows a staff email can lock
+  that account out for up to 15 minutes. That's the trade-off for stopping password
+  guessing; staff can wait, or have the count cleared.
+- **Behind a reverse proxy:** the IP used is the direct connection's
+  (`getRequestIP` without trusting `X-Forwarded-For`). Behind a proxy or load
+  balancer, every user would share the proxy's IP. Configure trusted forwarding
+  when the hosting target is chosen.
+
+## Open items
 - The data-protection law that applies to member data hasn't been identified yet.

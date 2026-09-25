@@ -1,6 +1,6 @@
 import { getDashboardSummary } from '../services/dashboard'
 
-export default defineEventHandler(async (event) => {
+export default defineApiHandler(async (event) => {
   await requireStaff(event)
   return getDashboardSummary()
 })

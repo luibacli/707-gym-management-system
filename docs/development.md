@@ -33,6 +33,7 @@ Staff accounts are managed from the command line (BR-A2). This uses the database
 
 ```bash
 pnpm staff create --email staff@example.com --name "Full Name"   # prompts for password
+pnpm staff set-password --email staff@example.com                 # also signs out existing sessions
 pnpm staff deactivate --email staff@example.com
 ```
 
@@ -49,6 +50,9 @@ pnpm staff deactivate --email staff@example.com
 | Unit/Nuxt tests | `pnpm test`        |
 | Tests (watch)   | `pnpm test:watch`  |
 | E2E tests       | `pnpm test:e2e`    |
+
+Before each run, a global setup (`test/e2e/global-setup.ts`) clears the
+login rate-limit records in the e2e database.
 
 `pnpm test:e2e` starts its own dev server on port 3100. It never reuses a
 `pnpm dev` server, so it can't write to the dev database. It loads `.env`, uses

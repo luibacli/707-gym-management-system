@@ -6,6 +6,8 @@ definePageMeta({ layout: false })
 useHead({ title: 'Sign in · 707 Gym' })
 
 const { fetch: refreshSession } = useUserSession()
+const route = useRoute()
+const sessionEnded = computed(() => route.query.reason === 'session-ended')
 
 const form = reactive<LoginInput>({ email: '', password: '' })
 const fieldErrors = ref<Partial<Record<keyof LoginInput, string[]>>>({})
@@ -69,6 +71,13 @@ async function onSubmit() {
           role="alert"
         >
           {{ formError }}
+        </Message>
+        <Message
+          v-else-if="sessionEnded"
+          severity="info"
+          size="small"
+        >
+          Your session has ended. Please sign in again.
         </Message>
 
         <div class="flex flex-col gap-1.5">

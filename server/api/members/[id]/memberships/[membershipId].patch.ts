@@ -1,7 +1,7 @@
 import { membershipInputSchema } from '#shared/schemas/membership'
 import { updateMembership } from '../../../../services/memberships'
 
-export default defineEventHandler(async (event) => {
+export default defineApiHandler(async (event) => {
   await requireStaff(event)
   const memberId = getIdParam(event, 'Member not found.')
   const membershipId = getIdParam(event, 'Membership not found.', 'membershipId')

@@ -3,11 +3,13 @@ import type { MemberInput } from '#shared/schemas/member'
 import type { FieldErrors } from '#shared/types/api'
 import type { Member } from '#shared/types/member'
 
+const { $api } = useNuxtApp()
+
 const route = useRoute()
 const id = route.params.id as string
 const detailPath = `/members/${id}`
 
-const { data: member, error, refresh } = await useFetch<Member>(`/api/members/${id}`)
+const { data: member, error, refresh } = await useApi<Member>(`/api/members/${id}`)
 const notFound = computed(() => error.value?.statusCode === 404)
 
 useHead({ title: 'Edit member · 707 Gym' })
@@ -22,7 +24,7 @@ async function save(input: MemberInput) {
   formError.value = ''
   serverErrors.value = {}
   try {
-    await $fetch<Member>(`/api/members/${id}`, { method: 'PATCH', body: input })
+    await $api<Member>(`/api/members/${id}`, { method: 'PATCH', body: input })
     toast.add({ severity: 'success', summary: 'Changes saved', life: 3000 })
     await navigateTo(detailPath, { replace: true })
   }

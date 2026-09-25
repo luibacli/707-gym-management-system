@@ -1,7 +1,7 @@
 import { memberInputSchema } from '#shared/schemas/member'
 import { createMember } from '../../services/members'
 
-export default defineEventHandler(async (event) => {
+export default defineApiHandler(async (event) => {
   await requireStaff(event)
   const input = await validateBody(event, memberInputSchema)
   const member = await createMember(input)

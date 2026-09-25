@@ -13,6 +13,7 @@ const e2eDatabase = process.env.E2E_MONGODB_URI
 
 export default defineConfig({
   testDir: './test/e2e',
+  globalSetup: './test/e2e/global-setup.ts',
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',

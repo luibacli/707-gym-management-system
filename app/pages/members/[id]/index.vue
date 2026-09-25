@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { Member, Membership } from '#shared/types/member'
 
+const { $api } = useNuxtApp()
+
 const route = useRoute()
 const id = route.params.id as string
 
-const { data: member, error, refresh } = await useFetch<Member>(`/api/members/${id}`)
+const { data: member, error, refresh } = await useApi<Member>(`/api/members/${id}`)
 const {
   data: memberships,
   error: membershipsError,
   refresh: refreshMemberships,
-} = await useFetch<Membership[]>(`/api/members/${id}/memberships`)
+} = await useApi<Membership[]>(`/api/members/${id}/memberships`)
 const notFound = computed(() => error.value?.statusCode === 404)
 const fullName = computed(() => (member.value ? `${member.value.firstName} ${member.value.lastName}` : ''))
 
@@ -22,7 +24,7 @@ const updating = ref(false)
 async function setArchived(archived: boolean) {
   updating.value = true
   try {
-    member.value = await $fetch<Member>(`/api/members/${id}/${archived ? 'archive' : 'restore'}`, { method: 'POST' })
+    member.value = await $api<Member>(`/api/members/${id}/${archived ? 'archive' : 'restore'}`, { method: 'POST' })
     toast.add({ severity: 'success', summary: archived ? 'Member archived' : 'Member restored', life: 3000 })
   }
   catch (err) {

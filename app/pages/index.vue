@@ -4,7 +4,7 @@ import type { MemberStatus } from '#shared/utils/membership'
 
 useHead({ title: 'Dashboard · 707 Gym' })
 
-const { data: summary, status, error, refresh } = await useFetch<DashboardSummary>('/api/dashboard')
+const { data: summary, status, error, refresh } = await useApi<DashboardSummary>('/api/dashboard')
 
 interface Tile {
   label: string

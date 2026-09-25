@@ -28,6 +28,8 @@ Signs in a staff member and sets the session cookie.
 - **400 `VALIDATION_ERROR`:** invalid body, with `fieldErrors.email` / `fieldErrors.password`.
 - **401 `UNAUTHENTICATED`:** "Incorrect email or password." Returned for an unknown email,
   a wrong password, or a deactivated account; the response doesn't reveal which.
+- **429 `RATE_LIMITED`:** too many failed attempts for this email or IP. Includes
+  a `Retry-After` header (seconds). See `docs/security.md`.
 
 ### Session endpoints (provided by `nuxt-auth-utils`)
 
@@ -103,8 +105,17 @@ members by current status (ADR-008):
 
 `totalMembers = active + nearExpiry + expired + noMembership`. `asOf` is today's date in Asia/Manila.
 
+## Unknown routes
+
+Any other `/api/*` path returns 404 `NOT_FOUND` in the ADR-003 format.
+
 ## Protecting routes
 
-Every staff-only route starts with `await requireStaff(event)` (`server/utils/requireStaff.ts`).
+Every route is defined with `defineApiHandler` (ADR-003). Every staff-only route
+starts with `await requireStaff(event)` (`server/utils/requireStaff.ts`).
+
+On the client, authenticated calls use `useApi` (instead of `useFetch`) and
+`useNuxtApp().$api` (instead of `$fetch`), so a 401 redirects to sign-in. The
+login page is the only place that uses plain `$fetch`.
 It returns the session user, or throws 401 `UNAUTHENTICATED` when there is no session or the
 account is inactive.

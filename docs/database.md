@@ -14,7 +14,8 @@ Staff accounts (ADR-001, BR-A1, BR-A2).
 | `name`         | String  | Required, trimmed                                        |
 | `email`        | String  | Required, unique, stored lowercase and trimmed           |
 | `passwordHash` | String  | Required. Scrypt hash. `select: false`, so it must be requested explicitly with `+passwordHash` |
-| `active`       | Boolean | Default `true`. Inactive users can't sign in and lose access on their next API request |
+| `active`       | Boolean | Default `true`. Inactive users can't sign in and lose access on their next API request or page load |
+| `passwordChangedAt` | Date | Set by `pnpm staff set-password`. Sessions that started earlier are invalid |
 | `createdAt`, `updatedAt` | Date | Mongoose timestamps                           |
 
 **Indexes:** unique on `email`, used by the login lookup.
@@ -76,6 +77,22 @@ write are separate operations, so two simultaneous saves for the same member
 could both pass. This is accepted at single-gym volume.
 
 **Deletion:** memberships can't be deleted (see the open questions in `business-rules.md`).
+
+### `loginattempts` (model `LoginAttemptModel`, `server/models/LoginAttempt.ts`)
+
+Failed sign-in attempts, used for rate limiting (ADR-001 amendment).
+
+| Field       | Type   | Notes                                  |
+| ----------- | ------ | -------------------------------------- |
+| `key`       | String | `email:<address>` or `ip:<address>`    |
+| `createdAt` | Date   | When the failure happened              |
+
+**Indexes:**
+- `{ key, createdAt: -1 }`: counts recent failures per key.
+- TTL on `createdAt` (15 minutes): MongoDB deletes expired records automatically,
+  about once a minute. Queries also filter by time, so they stay exact.
+
+The e2e global setup clears this collection in `707_e2e` before each run.
 
 ## Notes
 

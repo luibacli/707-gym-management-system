@@ -1,6 +1,6 @@
 import { getMember } from '../../../services/members'
 
-export default defineEventHandler(async (event) => {
+export default defineApiHandler(async (event) => {
   await requireStaff(event)
   const id = getIdParam(event, 'Member not found.')
   const member = await getMember(id)

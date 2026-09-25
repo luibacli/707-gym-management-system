@@ -41,7 +41,7 @@ watch(archived, () => {
   page.value = 1
 })
 
-const { data, status: fetchStatus, error, refresh } = await useFetch<ListResponse<Member>>('/api/members', {
+const { data, status: fetchStatus, error, refresh } = await useApi<ListResponse<Member>>('/api/members', {
   query: { search, archived, page, status: computed(() => status.value ?? undefined) },
 })
 

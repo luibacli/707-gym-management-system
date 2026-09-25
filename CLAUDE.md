@@ -104,6 +104,9 @@ Follow existing project conventions first. Defaults when none exist:
 - Types: PascalCase domain types. Mongoose models: singular domain names.
 - API: REST-style Nuxt filesystem routes.
 - Response and error format: follow `docs/api.md`.
+- API routes: define with `defineApiHandler`, not `defineEventHandler` (ADR-003).
+- Client data calls: use `useApi` / `useNuxtApp().$api`, not `useFetch` / `$fetch`,
+  so an expired session redirects to sign-in. The only exception is the login page.
 - Validation library: follow the established project choice; if none exists, document the decision before introducing one.
 - Auth mechanism: follow the established project choice; if none exists, document the decision before introducing one.
 - No `any` to silence errors. If `any` is truly required, comment why.

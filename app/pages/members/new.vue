@@ -3,6 +3,8 @@ import type { MemberInput } from '#shared/schemas/member'
 import type { FieldErrors } from '#shared/types/api'
 import type { Member } from '#shared/types/member'
 
+const { $api } = useNuxtApp()
+
 useHead({ title: 'Add member · 707 Gym' })
 
 const toast = useToast()
@@ -15,7 +17,7 @@ async function create(input: MemberInput) {
   formError.value = ''
   serverErrors.value = {}
   try {
-    const member = await $fetch<Member>('/api/members', { method: 'POST', body: input })
+    const member = await $api<Member>('/api/members', { method: 'POST', body: input })
     toast.add({ severity: 'success', summary: 'Member added', life: 3000 })
     await navigateTo(`/members/${member.id}`, { replace: true })
   }
