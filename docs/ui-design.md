@@ -117,3 +117,20 @@ professional software interface.
   button in the dialog footer.
 - Values the server calculates (e.g. the expiry date) are shown as a live preview
   in the dialog. They aren't editable.
+
+**Dashboard stat tiles**
+
+- A KPI row of stat tiles: 2 columns on mobile, 4 from `lg`. Each tile is a white
+  bordered card, and the whole tile is a link to the matching filtered member list.
+- The label is small, in sentence case, in `surface-600`. The value is `text-3xl
+  font-semibold` in `surface-900` with normal (proportional) figures. The number
+  is never colored by status.
+- Status tiles show a small dot in the status color next to the text label. The
+  color is never the only signal.
+- No charts for single numbers. A chart only earns its place when there's a trend
+  or a comparison to show.
+
+**Filters in the URL**
+
+- A list filter that other pages link to (e.g. `/members?status=expired`) is kept
+  in the URL query and updated with `router.replace`.

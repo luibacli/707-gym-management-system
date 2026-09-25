@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn } from './helpers'
+import { gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn, uniqueLastName } from './helpers'
 
 test.describe('memberships', () => {
   // Writes data, so it only runs against the separate e2e database (ADR-007).
@@ -7,7 +7,7 @@ test.describe('memberships', () => {
 
   test('adds, renews, and edits memberships with status and overlap rules', async ({ page }, testInfo) => {
     await signIn(page)
-    const lastName = `E2E${Date.now()}${testInfo.project.name}`
+    const lastName = uniqueLastName(testInfo.project.name)
     const response = await page.request.post('/api/members', {
       data: { firstName: 'Maria', lastName, phone: '09171234567' },
     })

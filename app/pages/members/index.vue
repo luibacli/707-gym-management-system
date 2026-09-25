@@ -1,13 +1,33 @@
 <script setup lang="ts">
 import type { DataTablePageEvent } from 'primevue/datatable'
 import type { ListResponse, Member } from '#shared/types/member'
+import { MEMBER_STATUSES, STATUS_LABELS, type MemberStatus } from '#shared/utils/membership'
 
 useHead({ title: 'Members · 707 Gym' })
+
+const route = useRoute()
+const router = useRouter()
+
+function statusFromQuery(value: unknown): MemberStatus | null {
+  return MEMBER_STATUSES.includes(value as MemberStatus) ? (value as MemberStatus) : null
+}
 
 const searchInput = ref('')
 const search = ref('')
 const archived = ref(false)
 const page = ref(1)
+// Kept in the URL so dashboard tiles can link to a filtered list.
+const status = ref<MemberStatus | null>(statusFromQuery(route.query.status))
+
+const statusOptions = MEMBER_STATUSES.map(value => ({ label: STATUS_LABELS[value], value }))
+
+watch(status, (value) => {
+  page.value = 1
+  router.replace({ query: { ...route.query, status: value ?? undefined } })
+})
+watch(() => route.query.status, (value) => {
+  status.value = statusFromQuery(value)
+})
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(searchInput, (value) => {
@@ -21,8 +41,8 @@ watch(archived, () => {
   page.value = 1
 })
 
-const { data, status, error, refresh } = await useFetch<ListResponse<Member>>('/api/members', {
-  query: { search, archived, page },
+const { data, status: fetchStatus, error, refresh } = await useFetch<ListResponse<Member>>('/api/members', {
+  query: { search, archived, page, status: computed(() => status.value ?? undefined) },
 })
 
 const pageSize = computed(() => data.value?.pageSize ?? 20)
@@ -50,13 +70,25 @@ function onPage(event: DataTablePageEvent) {
     </div>
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <InputText
-        v-model="searchInput"
-        type="search"
-        placeholder="Search name, phone, or email"
-        aria-label="Search members"
-        class="w-full sm:max-w-sm"
-      />
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <InputText
+          v-model="searchInput"
+          type="search"
+          placeholder="Search name, phone, or email"
+          aria-label="Search members"
+          class="w-full sm:w-72"
+        />
+        <Select
+          v-model="status"
+          :options="statusOptions"
+          option-label="label"
+          option-value="value"
+          placeholder="All statuses"
+          show-clear
+          aria-label="Filter by status"
+          class="w-full sm:w-48"
+        />
+      </div>
       <SelectButton
         v-model="archived"
         :options="viewOptions"
@@ -98,7 +130,7 @@ function onPage(event: DataTablePageEvent) {
         :rows="pageSize"
         :first="(page - 1) * pageSize"
         :total-records="data?.total ?? 0"
-        :loading="status === 'pending'"
+        :loading="fetchStatus === 'pending'"
         @page="onPage"
       >
         <Column header="Name">
@@ -143,7 +175,10 @@ function onPage(event: DataTablePageEvent) {
         <template #empty>
           <div class="py-8 text-center text-surface-600">
             <template v-if="search">
-              No members match “{{ search }}”.
+              No members match “{{ search }}”{{ status ? ` with status “${STATUS_LABELS[status]}”` : '' }}.
+            </template>
+            <template v-else-if="status">
+              No {{ archived ? 'archived ' : '' }}members with status “{{ STATUS_LABELS[status] }}”.
             </template>
             <template v-else-if="archived">
               No archived members.

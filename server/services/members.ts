@@ -46,8 +46,17 @@ function searchFilter(search: string) {
   }
 }
 
-export async function listMembers({ search, archived, page }: MemberListQuery): Promise<ListResponse<Member>> {
-  const filter = { archived, ...(search ? searchFilter(search) : {}) }
+export async function listMembers(query: MemberListQuery): Promise<ListResponse<Member>> {
+  return query.status ? listMembersByStatus(query) : listMembersPage(query)
+}
+
+function memberFilter({ search, archived }: MemberListQuery) {
+  return { archived, ...(search ? searchFilter(search) : {}) }
+}
+
+async function listMembersPage(query: MemberListQuery): Promise<ListResponse<Member>> {
+  const { page } = query
+  const filter = memberFilter(query)
 
   const [docs, total] = await Promise.all([
     MemberModel.find(filter)
@@ -62,6 +71,32 @@ export async function listMembers({ search, archived, page }: MemberListQuery): 
   return {
     items: docs.map(doc => toMember(doc, statuses.get(doc.id as string) ?? 'none')),
     total,
+    page,
+    pageSize: MEMBER_PAGE_SIZE,
+  }
+}
+
+/**
+ * Status depends on today's date, so it can't be filtered in the database (ADR-008).
+ * Computes statuses for every matching member, then paginates in memory.
+ */
+async function listMembersByStatus(query: MemberListQuery): Promise<ListResponse<Member>> {
+  const { page, status } = query
+  const ids = await MemberModel.find(memberFilter(query))
+    .select('_id')
+    .sort({ lastName: 1, firstName: 1, _id: 1 })
+    .collation(MEMBER_COLLATION)
+    .lean()
+  const statuses = await getMemberStatuses(ids.map(doc => doc._id))
+  const matchingIds = ids.map(doc => doc._id.toString()).filter(id => statuses.get(id) === status)
+
+  const pageIds = matchingIds.slice((page - 1) * MEMBER_PAGE_SIZE, page * MEMBER_PAGE_SIZE)
+  const docs = await MemberModel.find({ _id: { $in: pageIds } })
+  const byId = new Map(docs.map(doc => [doc.id as string, doc]))
+
+  return {
+    items: pageIds.map(id => toMember(byId.get(id)!, status!)),
+    total: matchingIds.length,
     page,
     pageSize: MEMBER_PAGE_SIZE,
   }

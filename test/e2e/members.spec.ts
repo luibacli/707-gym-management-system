@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn } from './helpers'
+import { gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn, uniqueLastName } from './helpers'
 
 test('member API requires a staff session', async ({ request }) => {
   const response = await request.get('/api/members')
@@ -24,10 +24,10 @@ test.describe('member management', () => {
   })
 
   test('adds, edits, archives, and restores a member', async ({ page }, testInfo) => {
-    const lastName = `E2E${Date.now()}${testInfo.project.name}`
+    const lastName = uniqueLastName(testInfo.project.name)
 
     // Add: required fields are validated before submitting.
-    await page.getByRole('link', { name: 'Members' }).click()
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Members' }).click()
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible()
     await page.getByRole('link', { name: 'Add member' }).click()
     await expect(page.getByRole('heading', { name: 'Add member' })).toBeVisible()

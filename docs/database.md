@@ -63,7 +63,9 @@ A member's membership periods (BR-H1). Renewals are new records (BR-H3).
 | `createdAt`, `updatedAt` | Date | Mongoose timestamps                          |
 
 **Status is not stored.** It depends on today's date, so it's calculated on every
-read by `shared/utils/membership.ts` (BR-S1–S3).
+read by `shared/utils/membership.ts` (BR-S1–S3). Dashboard counts and the list's
+status filter calculate the status of every relevant member in the application
+(ADR-008). This is fine at single-gym volume; revisit at around 10,000 members.
 
 **Indexes:** `{ memberId, startDate: -1 }`. It serves a member's history (newest
 first), the overlap check, and the status lookup for a page of members

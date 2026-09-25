@@ -52,6 +52,8 @@ with `memberInputSchema` (`shared/schemas/member.ts`).
 
 - **List query:**
   - `search`: optional, up to 100 characters. Every word must match name, phone or email.
+  - `status`: optional, one of `active | near-expiry | expired | none`. It filters
+    by the current status (calculated in the application, ADR-008).
   - `archived`: `true` or `false`, default `false`.
   - `page`: 1 or higher, default 1.
   - The page size is fixed at 20. Results are sorted by last name, then first name.
@@ -89,6 +91,17 @@ All routes require a staff session. The body is `{ plan: 'monthly' | 'annual', s
     The message names the conflicting dates.
 - **Member responses** (list, get, create, update, archive, restore) now include
   `status`: `active | near-expiry | expired | none` (BR-S3).
+
+### Dashboard
+
+`GET /api/dashboard` (staff session required) returns counts of **non-archived**
+members by current status (ADR-008):
+
+```json
+{ "asOf": "2026-09-26", "totalMembers": 46, "active": 2, "nearExpiry": 0, "expired": 21, "noMembership": 23 }
+```
+
+`totalMembers = active + nearExpiry + expired + noMembership`. `asOf` is today's date in Asia/Manila.
 
 ## Protecting routes
 

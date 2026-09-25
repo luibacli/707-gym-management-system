@@ -20,7 +20,7 @@ Layers are skipped when they add nothing. The boundaries and rules are in `CLAUD
 | `app/assets/css/main.css`| Tailwind entry and CSS layer order                   |
 | `app/theme/`             | PrimeVue theme preset (ADR-004)                      |
 | `server/api/`            | API routes (HTTP concerns, validation)               |
-| `server/services/`       | Business logic and queries (`members.ts`, `memberships.ts`). Services return `null` or a result union, and routes map those to HTTP errors |
+| `server/services/`       | Business logic and queries (`members.ts`, `memberships.ts`, `dashboard.ts`). Services return `null` or a result union, and routes map those to HTTP errors |
 | `server/models/`         | Mongoose models (`User`, `Member`, `Membership`)     |
 | `server/plugins/`        | Nitro plugins; `mongoose.ts` opens the DB connection |
 | `shared/`                | Code shared by client and server: Zod schemas (ADR-002), API types, date helpers (ADR-006), and membership rules (`shared/utils/membership.ts`: expiry, status, overlap, renewal start) |
@@ -42,6 +42,7 @@ Folders marked "planned" are created when the first feature needs them.
 | Dev database  | MongoDB Atlas; Docker deferred                | ADR-005 |
 | Dates         | Calendar dates as `YYYY-MM-DD` strings        | ADR-006 |
 | Test DBs      | In-memory for integration; `707_e2e` for e2e  | ADR-007 |
+| Status counts | Calculated in the app at request time          | ADR-008 |
 | State         | Pinia via `@pinia/nuxt`                       | —       |
 
 ## Database connection

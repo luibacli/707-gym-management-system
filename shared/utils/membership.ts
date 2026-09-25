@@ -11,7 +11,8 @@ export const PLAN_LABELS: Record<MembershipPlan, string> = {
 export const NEAR_EXPIRY_DAYS = 7 // BR-S2
 
 export type MembershipStatus = 'scheduled' | 'active' | 'near-expiry' | 'expired'
-export type MemberStatus = 'active' | 'near-expiry' | 'expired' | 'none'
+export const MEMBER_STATUSES = ['active', 'near-expiry', 'expired', 'none'] as const
+export type MemberStatus = (typeof MEMBER_STATUSES)[number]
 
 export const STATUS_LABELS: Record<MembershipStatus | MemberStatus, string> = {
   'scheduled': 'Scheduled',

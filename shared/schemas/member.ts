@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { isCalendarDate, todayInGymTimeZone } from '../utils/date'
+import { MEMBER_STATUSES } from '../utils/membership'
 
 // BR-M1. The same schema validates the form (client) and the request body (server).
 
@@ -53,6 +54,7 @@ export const memberListQuerySchema = z.object({
   search: z.string().trim().max(100).optional().transform(value => value || undefined),
   archived: z.enum(['true', 'false']).optional().transform(value => value === 'true'),
   page: z.coerce.number().int().min(1).optional().default(1),
+  status: z.enum(MEMBER_STATUSES).optional(),
 })
 
 export type MemberListQuery = z.output<typeof memberListQuerySchema>
