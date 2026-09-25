@@ -31,5 +31,9 @@ export default defineNuxtConfig({
 
   typescript: {
     typeCheck: false,
+    // Typecheck CLI scripts (run directly by Node) with the Node config.
+    nodeTsConfig: {
+      include: ['../scripts/**/*'],
+    },
   },
 })

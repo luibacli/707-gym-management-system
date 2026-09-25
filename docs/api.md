@@ -14,5 +14,30 @@ Conventions are defined in **ADR-003**. In summary:
 
 ## Endpoints
 
-None implemented yet. Document each endpoint here when it's added: method, path,
-auth, params/body, response, and errors.
+Document each endpoint here when it's added: method, path, auth, params/body,
+response, and errors.
+
+### `POST /api/auth/login`
+
+Signs in a staff member and sets the session cookie.
+
+- **Auth:** none.
+- **Body:** `{ email: string, password: string }`. The email is trimmed and lowercased.
+  Schema: `loginSchema` in `shared/schemas/auth.ts`.
+- **200:** `{ id, name, email }`, the session user.
+- **400 `VALIDATION_ERROR`:** invalid body, with `fieldErrors.email` / `fieldErrors.password`.
+- **401 `UNAUTHENTICATED`:** "Incorrect email or password." Returned for an unknown email,
+  a wrong password, or a deactivated account; the response doesn't reveal which.
+
+### Session endpoints (provided by `nuxt-auth-utils`)
+
+- `GET /api/_auth/session`: the current session (used by `useUserSession()`).
+- `DELETE /api/_auth/session`: signs out (used by `useUserSession().clear()`).
+
+These come from the module; they are not defined in `server/api/`.
+
+## Protecting routes
+
+Every staff-only route starts with `await requireStaff(event)` (`server/utils/requireStaff.ts`).
+It returns the session user, or throws 401 `UNAUTHENTICATED` when there is no session or the
+account is inactive.

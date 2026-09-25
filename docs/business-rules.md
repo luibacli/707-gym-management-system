@@ -1,7 +1,8 @@
 # Business Rules
 
-> **Status: PROVISIONAL.** Every rule below is a default chosen by the developer
-> on 2026-09-25 so the foundation can proceed. None is confirmed by the client yet.
+> **Status: mostly PROVISIONAL.** Rules marked **Provisional** are defaults chosen
+> by the developer on 2026-09-25 so the foundation can proceed. They aren't
+> confirmed by the client yet. Rules marked **Confirmed** have been approved.
 > Each rule has an ID. When the client confirms or changes a rule, update it here
 > and mark it **Confirmed**.
 >
@@ -57,9 +58,9 @@ Feb 29 + 1 year = Feb 28.
 The membership is active up to and including its expiry date. It becomes expired
 the following day.
 
-**BR-P5: Timezone** (Provisional; **assumed, must be confirmed**)
+**BR-P5: Timezone** (Confirmed 2026-09-25)
 
-"Today" is determined in the gym's local timezone, assumed to be `Asia/Manila`.
+The gym is in the Philippines. "Today" is determined in the `Asia/Manila` timezone.
 All membership dates are calendar dates, with no time of day.
 
 **BR-P6: No price or payment data** (Provisional)
@@ -74,7 +75,7 @@ are out of scope for the MVP (`project-overview.md` §8).
 Status is always calculated from the membership dates and the current date.
 Staff can't set it manually. There are no "frozen" or "cancelled" states in the MVP.
 
-**BR-S2: Membership statuses** (Provisional)
+**BR-S2: Membership statuses** (Confirmed 2026-09-25, including the 7-day near-expiry window)
 
 These statuses are mutually exclusive:
 

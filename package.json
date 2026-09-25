@@ -12,7 +12,8 @@
     "typecheck": "nuxt typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "staff": "node --env-file=.env scripts/staff.ts"
   },
   "dependencies": {
     "@pinia/nuxt": "^1.0.2",
@@ -31,6 +32,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@adonisjs/hash": "^9.1.1",
     "@nuxt/eslint": "^1.17.0",
     "@nuxt/test-utils": "^4.3.2",
     "@playwright/test": "^1.63.0",

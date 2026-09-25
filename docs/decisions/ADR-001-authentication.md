@@ -12,7 +12,7 @@ app (BR-A2). No OAuth or third-party identity provider is required.
 
 ## Decision
 
-Use **`nuxt-auth-utils`** with email/username + password login.
+Use **`nuxt-auth-utils`** with email + password login.
 
 - **Sessions:** stored in an encrypted, signed cookie (sealed with `NUXT_SESSION_PASSWORD`).
   The session contains only the staff user's ID and display name.

@@ -1,6 +1,6 @@
 # Security
 
-> Status: decided (ADR-001), **not implemented yet**.
+> Status: staff sign-in implemented (ADR-001). No data routes exist yet.
 
 ## Authentication
 
@@ -8,15 +8,25 @@
   `nuxt-auth-utils`, keyed by `NUXT_SESSION_PASSWORD`.
 - Passwords are hashed with scrypt (`hashPassword`). They are never stored or
   logged in plain text.
-- Staff accounts are created and deactivated with a server-side CLI script (BR-A2).
+- Staff accounts are created and deactivated with `pnpm staff` (BR-A2). The
+  password is prompted for with hidden input, so it never appears in shell history.
   There is no self-registration.
+- Minimum password length is 8 characters. This is a security default, not a
+  client requirement.
+- Login returns the same 401 message for an unknown email, a wrong password, or a
+  deactivated account. When no user matches, the server still verifies against a
+  dummy hash, so response time doesn't reveal whether an email exists.
 
 ## Authorization
 
 - A single staff role with full access (BR-A1).
-- Every protected API route calls `requireUserSession(event)`, then checks that
-  the user is still active in the database.
-- Client-side route middleware only handles redirects. It is not a security boundary.
+- Every protected API route calls `requireStaff(event)`. It checks the session, then
+  checks that the user is still active in the database.
+- The global client middleware (`app/middleware/auth.global.ts`) only handles
+  redirects. It is not a security boundary.
+- Known gap: the client-side session state (`useUserSession`) of a deactivated user
+  still shows them as signed in until an API call returns 401. Once data routes exist,
+  the client should sign out and redirect when it gets a 401.
 
 ## Sensitive data
 

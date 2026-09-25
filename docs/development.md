@@ -24,6 +24,16 @@ to run them are listed under `allowBuilds` in `pnpm-workspace.yaml`.
 | `NUXT_MONGODB_URI`      | Yes      | MongoDB connection string. The server won't start without it. |
 | `NUXT_SESSION_PASSWORD` | Yes (prod) | Session cookie encryption key, 32+ characters. Generated automatically in dev if empty. |
 
+## Staff accounts
+
+Staff accounts are managed from the command line (BR-A2). This uses the database in
+`NUXT_MONGODB_URI` from `.env`:
+
+```bash
+pnpm staff create --email staff@example.com --name "Full Name"   # prompts for password
+pnpm staff deactivate --email staff@example.com
+```
+
 ## Commands
 
 | Task            | Command            |
@@ -37,6 +47,10 @@ to run them are listed under `allowBuilds` in `pnpm-workspace.yaml`.
 | Unit/Nuxt tests | `pnpm test`        |
 | Tests (watch)   | `pnpm test:watch`  |
 | E2E tests       | `pnpm test:e2e`    |
+
+The successful sign-in e2e test runs only when `E2E_STAFF_EMAIL` and
+`E2E_STAFF_PASSWORD` are set, for an active staff account in the dev database.
+Otherwise it is skipped.
 
 `pnpm test:e2e` starts the dev server itself (or reuses one already running on
 port 3000). It runs in Desktop Chrome and on a mobile viewport (Pixel 7).
