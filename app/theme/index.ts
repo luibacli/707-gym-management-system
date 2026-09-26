@@ -18,6 +18,15 @@ const BrandPreset = definePreset(Aura, {
       900: '{red.900}',
       950: '{red.950}',
     },
+    colorScheme: {
+      light: {
+        formField: {
+          // Focused fields use a dark neutral border: with a red brand color, a red focus
+          // border would look like the (also red) invalid state.
+          focusBorderColor: '{surface.900}',
+        },
+      },
+    },
   },
 })
 

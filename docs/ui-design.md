@@ -43,14 +43,33 @@ professional software interface.
 - Page content goes in a centered container (`max-w-6xl`, 16px side padding) on the
   neutral `surface-50` background.
 
-**Standalone pages** (e.g. sign in)
+**Sign-in page** (`layout: false`)
 
-- `layout: false`, with a single centered card (`max-w-sm`, white, thin border,
-  no shadow) on `surface-50`.
-- The logo appears at full size (64px) only on the sign-in card. Elsewhere it stays small.
+- **Desktop (`lg`+):** a split layout.
+  - Left: a dark brand panel (`surface-900`, no gradient) with the logo and gym
+    name, a one-line value statement, and three short feature points. List only
+    features that actually exist.
+  - Right: `surface-50` with the form on a white card (`rounded-xl`, thin
+    border, `shadow-sm`). The heading is a small red "STAFF PORTAL" label above
+    a time-of-day greeting ("Good morning / afternoon / evening", Manila time),
+    then "Sign in to 707 Gym".
+  - Fields have leading icons (envelope, lock), and the button is "Sign in" with
+    a trailing arrow.
+  - The footer at the bottom of the right side holds the forgot-password line and "© <year> 707 Gym".
+- **Smaller screens:** the same card and footer with the logo on top. No brand panel.
+- The sign-in page is the one place where a dark surface and the large logo are
+  used. Elsewhere the logo stays small.
+- The email field is focused automatically on devices with a mouse or trackpad,
+  not on touch screens (it would pop up the keyboard).
+- The forgot-password line says "Ask the gym owner", because staff can't reset
+  their own passwords (BR-A2).
+- No fake options (no "Remember me" or social sign-in) and no decorative
+  backgrounds on the form side.
 
 **Forms**
 
+- Focused fields have a **dark neutral border** (`surface-900`, set in
+  `app/theme/index.ts`), not the brand red. Red borders mean invalid only.
 - A visible label above each field. Fields are full width (`fluid`).
 - Field errors show as small red text directly under the field, and the field gets
   PrimeVue's `invalid` state.

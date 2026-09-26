@@ -5,7 +5,7 @@ test.describe('staff sign-in', () => {
   test('redirects signed-out visitors to the login page', async ({ page }) => {
     await page.goto('/')
     await expect(page).toHaveURL(/\/login$/)
-    await expect(page.getByRole('heading', { name: 'Staff sign in' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^Good (morning|afternoon|evening)$/ })).toBeVisible()
   })
 
   test('shows an error for incorrect credentials', async ({ page }) => {
