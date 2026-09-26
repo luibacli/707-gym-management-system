@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  addDays, calculateExpiryDate, datesOverlap, daysBetween, getMemberStatus, getMembershipStatus, suggestStartDate,
+  addDays, calculateExpiryDate, datesOverlap, daysBetween, getCurrentMembership, getMemberStatus, getMembershipStatus,
+  suggestStartDate,
 } from '../../shared/utils/membership'
 
 describe('calculateExpiryDate (BR-P2, BR-P3)', () => {
@@ -91,5 +92,18 @@ describe('suggestStartDate (BR-H3)', () => {
   it('starts today when the latest membership has ended or none exist', () => {
     expect(suggestStartDate([{ startDate: '2026-01-01', expiryDate: '2026-02-01' }], '2026-03-20')).toBe('2026-03-20')
     expect(suggestStartDate([], '2026-03-20')).toBe('2026-03-20')
+  })
+})
+
+describe('getCurrentMembership', () => {
+  const past = { startDate: '2026-01-01', expiryDate: '2026-02-01' }
+  const older = { startDate: '2025-01-01', expiryDate: '2025-02-01' }
+  const current = { startDate: '2026-02-02', expiryDate: '2026-03-02' }
+  const future = { startDate: '2026-06-01', expiryDate: '2026-07-01' }
+
+  it('prefers the membership covering today, else the latest past one', () => {
+    expect(getCurrentMembership([future, past, current], '2026-02-10')).toBe(current)
+    expect(getCurrentMembership([older, future, past], '2026-05-01')).toBe(past)
+    expect(getCurrentMembership([future], '2026-05-01')).toBeUndefined()
   })
 })

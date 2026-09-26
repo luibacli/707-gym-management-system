@@ -26,6 +26,7 @@ Layers are skipped when they add nothing. The boundaries and rules are in `CLAUD
 | `app/plugins/api.ts`     | Provides `$api`: `$fetch` that redirects to `/login` on 401 |
 | `app/composables/useApi.ts` | `useFetch` built with `createUseFetch` on `$api` (SSR uses `useRequestFetch`) |
 | `shared/`                | Code shared by client and server: Zod schemas (ADR-002), API types, date helpers (ADR-006), and membership rules (`shared/utils/membership.ts`: expiry, status, overlap, renewal start) |
+| `scripts/`               | CLI scripts run by plain Node: `staff.ts` (accounts), `demo.ts` (demo reset), `demo-start.ts` |
 | `test/unit/`             | Vitest, Node environment                             |
 | `test/nuxt/`             | Vitest, Nuxt runtime environment                     |
 | `test/integration/`      | Vitest with in-memory MongoDB, for services (ADR-007) |

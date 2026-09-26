@@ -107,3 +107,20 @@ describe('membership service', () => {
     expect((await listMembers({ archived: false, page: 1 })).items[0]?.status).toBe('active')
   })
 })
+
+describe('current expiry in member responses', () => {
+  it('uses the membership that determines the status, not a scheduled renewal', async () => {
+    const member = await newMember()
+    const today = todayInGymTimeZone()
+    const current = await create(member.id, addDays(today, -5))
+    await create(member.id, addDays(current.expiryDate, 1))
+
+    const found = await getMember(member.id)
+    expect(found?.currentExpiryDate).toBe(current.expiryDate)
+  })
+
+  it('is not set for members without memberships', async () => {
+    const member = await newMember()
+    expect((await getMember(member.id))?.currentExpiryDate).toBeUndefined()
+  })
+})

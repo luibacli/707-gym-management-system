@@ -32,6 +32,9 @@ PrimeVue **4.5.x** (the latest 4.x) is MIT-licensed.
   utilities can override PrimeVue component styles.
 - **Dark mode:** light mode only for now. Dark mode applies only if the
   `.app-dark` class is set.
+- **Icons:** `primeicons` constrained to `^7.0.0` (MIT). **PrimeIcons 8.x uses the
+  same commercial PrimeUI License as PrimeVue 5**, so the same rule applies:
+  don't upgrade without a new decision. *(Added 2026-09-26.)*
 - **PrimeVue version: 4.5.x (MIT).** `primevue` and `@primevue/nuxt-module`
   are constrained to `^4.5.5` (never 5.x), and `@primeuix/themes` to `^2.0.3`. Do not upgrade to
   PrimeVue 5.x without a new decision, because 5.x requires a PrimeUI license key.

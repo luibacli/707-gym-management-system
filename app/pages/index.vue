@@ -10,7 +10,7 @@ interface Tile {
   label: string
   value: number
   to: string
-  /** Status tiles show a status-colored marker next to the label (never color alone). */
+  /** Status tiles show the status icon (in its color) next to the label; never color alone. */
   status?: MemberStatus
 }
 
@@ -25,12 +25,11 @@ const tiles = computed<Tile[]>(() => {
   ]
 })
 
-// Same semantic colors as StatusTag.
-const MARKER_CLASS: Record<MemberStatus, string> = {
-  'active': 'bg-green-500',
-  'near-expiry': 'bg-orange-500',
-  'expired': 'bg-red-500',
-  'none': 'bg-surface-400',
+const ICON_COLOR: Record<MemberStatus, string> = {
+  'active': 'text-green-600',
+  'near-expiry': 'text-orange-600',
+  'expired': 'text-red-600',
+  'none': 'text-surface-500',
 }
 
 const numberFormat = new Intl.NumberFormat('en-US')
@@ -38,16 +37,24 @@ const numberFormat = new Intl.NumberFormat('en-US')
 
 <template>
   <div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-xl font-semibold">
-        Dashboard
-      </h1>
-      <p
-        v-if="summary"
-        class="text-sm text-surface-600"
-      >
-        Membership status as of {{ formatCalendarDate(summary.asOf) }}. Archived members aren't counted.
-      </p>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-xl font-semibold">
+          Dashboard
+        </h1>
+        <p
+          v-if="summary"
+          class="text-sm text-surface-600"
+        >
+          Membership status as of {{ formatCalendarDate(summary.asOf) }}. Archived members aren't counted.
+        </p>
+      </div>
+      <Button
+        as="router-link"
+        to="/members/new"
+        label="Add member"
+        icon="pi pi-plus"
+      />
     </div>
 
     <div
@@ -100,10 +107,8 @@ const numberFormat = new Intl.NumberFormat('en-US')
             class="flex h-full flex-col gap-2 rounded-lg border border-surface-200 bg-surface-0 p-4 transition-colors hover:border-surface-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
             <span class="flex items-center gap-2 text-sm text-surface-600">
-              <span
-                v-if="tile.status"
-                class="size-2 shrink-0 rounded-full"
-                :class="MARKER_CLASS[tile.status]"
+              <i
+                :class="[tile.status ? STATUS_ICON[tile.status] : 'pi pi-users', tile.status ? ICON_COLOR[tile.status] : 'text-surface-500']"
                 aria-hidden="true"
               />
               {{ tile.label }}
@@ -123,16 +128,38 @@ const numberFormat = new Intl.NumberFormat('en-US')
           class="font-medium text-primary-700 hover:underline"
         >Add the first member</NuxtLink>
       </p>
-      <p
-        v-else-if="summary && summary.noMembership > 0"
-        class="text-sm text-surface-600"
-      >
-        <NuxtLink
-          to="/members?status=none"
-          class="font-medium text-surface-900 hover:underline"
-        >{{ numberFormat.format(summary.noMembership) }} of {{ numberFormat.format(summary.totalMembers) }}
-          members have no membership.</NuxtLink>
-      </p>
+
+      <template v-else-if="summary">
+        <div class="grid gap-4 lg:grid-cols-2">
+          <AttentionPanel
+            title="Expiring this week"
+            icon="pi pi-clock"
+            :list="summary.expiringSoon"
+            empty-text="No memberships expire in the next 7 days."
+            view-all-to="/members?status=near-expiry"
+            view-all-label="All near-expiry members"
+          />
+          <AttentionPanel
+            title="Recently expired"
+            icon="pi pi-history"
+            :list="summary.recentlyExpired"
+            empty-text="No memberships expired in the last 30 days."
+            view-all-to="/members?status=expired"
+            view-all-label="All expired members"
+          />
+        </div>
+
+        <p
+          v-if="summary.noMembership > 0"
+          class="text-sm text-surface-600"
+        >
+          <NuxtLink
+            to="/members?status=none"
+            class="font-medium text-surface-900 hover:underline"
+          >{{ numberFormat.format(summary.noMembership) }} of {{ numberFormat.format(summary.totalMembers) }}
+            members have no membership.</NuxtLink>
+        </p>
+      </template>
     </template>
   </div>
 </template>

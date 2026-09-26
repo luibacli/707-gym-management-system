@@ -48,11 +48,23 @@ function confirmArchive() {
 const dialogVisible = ref(false)
 const editingMembership = ref<Membership>()
 const suggestedStartDate = computed(() => suggestStartDate(memberships.value ?? [], todayInGymTimeZone()))
+const hasMemberships = computed(() => !!memberships.value?.length)
+// Memberships are sorted newest first; renewals default to the latest plan.
+const latestPlan = computed(() => memberships.value?.[0]?.plan)
 
 function openMembershipDialog(membership?: Membership) {
   editingMembership.value = membership
   dialogVisible.value = true
 }
+
+// Dashboard "Renew" links open the renewal dialog directly (?renew=1).
+const router = useRouter()
+onMounted(() => {
+  if (route.query.renew === '1' && memberships.value) {
+    openMembershipDialog()
+    router.replace({ query: { ...route.query, renew: undefined } })
+  }
+})
 
 async function onMembershipSaved() {
   // The member's status depends on their memberships.
@@ -133,6 +145,7 @@ const details = computed(() => {
           <Button
             v-if="member.archived"
             label="Restore"
+            icon="pi pi-replay"
             severity="secondary"
             outlined
             :loading="updating"
@@ -141,6 +154,7 @@ const details = computed(() => {
           <Button
             v-else
             label="Archive"
+            icon="pi pi-inbox"
             severity="secondary"
             outlined
             :loading="updating"
@@ -150,6 +164,7 @@ const details = computed(() => {
             as="router-link"
             :to="`/members/${member.id}/edit`"
             label="Edit"
+            icon="pi pi-pencil"
           />
         </div>
       </div>
@@ -187,7 +202,8 @@ const details = computed(() => {
             Memberships
           </h2>
           <Button
-            label="Add membership"
+            :label="hasMemberships ? 'Renew' : 'Add membership'"
+            :icon="hasMemberships ? 'pi pi-refresh' : 'pi pi-plus'"
             size="small"
             :disabled="!memberships"
             @click="openMembershipDialog()"
@@ -223,7 +239,7 @@ const details = computed(() => {
           class="divide-y divide-surface-200"
         >
           <li
-            v-for="item in memberships"
+            v-for="(item, index) in memberships"
             :key="item.id"
             class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6"
           >
@@ -234,7 +250,18 @@ const details = computed(() => {
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <StatusTag :status="item.status" />
+              <!-- Past periods followed by a newer membership are history, not a problem. -->
+              <Tag
+                v-if="item.status === 'expired' && index > 0"
+                value="Ended"
+                severity="secondary"
+                icon="pi pi-check"
+                class="whitespace-nowrap"
+              />
+              <StatusTag
+                v-else
+                :status="item.status"
+              />
               <Button
                 label="Edit"
                 severity="secondary"
@@ -253,6 +280,8 @@ const details = computed(() => {
         :member-id="member.id"
         :membership="editingMembership"
         :suggested-start-date="suggestedStartDate"
+        :default-plan="latestPlan"
+        :renewal="hasMemberships"
         @saved="onMembershipSaved"
       />
     </template>

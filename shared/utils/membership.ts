@@ -76,13 +76,26 @@ export function getMembershipStatus({ startDate, expiryDate }: MembershipDates, 
 }
 
 /**
- * A member's current status (BR-S3): from the membership covering today, else the most
- * recent past membership (Expired), else "No membership". Scheduled memberships don't count yet.
+ * The membership that determines a member's status (BR-S3): the one covering today,
+ * else the most recent past one. Scheduled (future) memberships don't count yet.
  */
+export function getCurrentMembership<T extends MembershipDates>(memberships: T[], today: string): T | undefined {
+  const covering = memberships.find(m => m.startDate <= today && today <= m.expiryDate)
+  if (covering) return covering
+  return memberships
+    .filter(m => m.expiryDate < today)
+    .reduce<T | undefined>((latest, m) => (!latest || m.expiryDate > latest.expiryDate ? m : latest), undefined)
+}
+
+/** A member's current status (BR-S3), or "No membership" when there's no current membership. */
 export function getMemberStatus(memberships: MembershipDates[], today: string): MemberStatus {
-  const current = memberships.find(m => m.startDate <= today && today <= m.expiryDate)
-  if (current) return getMembershipStatus(current, today) as MemberStatus
-  return memberships.some(m => m.expiryDate < today) ? 'expired' : 'none'
+  const current = getCurrentMembership(memberships, today)
+  return current ? (getMembershipStatus(current, today) as MemberStatus) : 'none'
+}
+
+/** True when the member already has a membership starting after today (renewed ahead). */
+export function hasScheduledMembership(memberships: MembershipDates[], today: string): boolean {
+  return memberships.some(m => m.startDate > today)
 }
 
 /** True when two inclusive date ranges share at least one day (BR-H2). */

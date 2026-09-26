@@ -4,8 +4,8 @@ const { user, clear } = useUserSession()
 const signingOut = ref(false)
 
 const navItems = [
-  { label: 'Dashboard', to: '/', isActive: (path: string) => path === '/' },
-  { label: 'Members', to: '/members', isActive: (path: string) => path.startsWith('/members') },
+  { label: 'Dashboard', icon: 'pi pi-home', to: '/', isActive: (path: string) => path === '/' },
+  { label: 'Members', icon: 'pi pi-users', to: '/members', isActive: (path: string) => path.startsWith('/members') },
 ]
 
 async function signOut() {
@@ -45,11 +45,16 @@ async function signOut() {
               :key="item.to"
               :to="item.to"
               :aria-current="item.isActive(route.path) ? 'page' : undefined"
-              class="rounded-md px-3 py-1.5 text-sm font-medium"
+              class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium"
               :class="item.isActive(route.path)
                 ? 'bg-primary-50 text-primary-700'
                 : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900'"
             >
+              <i
+                :class="item.icon"
+                class="hidden text-sm sm:inline"
+                aria-hidden="true"
+              />
               {{ item.label }}
             </NuxtLink>
           </nav>
@@ -58,6 +63,7 @@ async function signOut() {
           <span class="hidden truncate text-sm text-surface-600 md:inline">{{ user?.name }}</span>
           <Button
             label="Sign out"
+            icon="pi pi-sign-out"
             severity="secondary"
             size="small"
             class="shrink-0 whitespace-nowrap"

@@ -134,3 +134,41 @@ professional software interface.
 
 - A list filter that other pages link to (e.g. `/members?status=expired`) is kept
   in the URL query and updated with `router.replace`.
+
+**Icons** (`primeicons` 7, MIT; see ADR-004)
+
+- Used on navigation, primary and secondary actions (Add, Renew, Edit, Archive,
+  Restore, Sign out), dashboard tiles and panels, the search field and status tags.
+- Every icon sits next to a text label. Icon-only buttons need an `aria-label`.
+- Status icons (`app/utils/status.ts`): Active = check-circle, Near expiry = clock,
+  Expired = times-circle, Scheduled = calendar, No membership = minus-circle.
+
+**Follow-up panels** (dashboard "Expiring this week" / "Recently expired")
+
+- Each is a bordered panel with an icon + title header and a count.
+- Rows show the name link, relative expiry text ("Expires in 3 days",
+  "Expired yesterday"), plan and phone, plus an outlined **Renew** button that
+  opens the renewal dialog (`/members/:id?renew=1`).
+- A footer link goes to the full filtered list. The panel says "Showing 8 of N"
+  when the list is longer.
+
+**Renewal**
+
+- On a member page, the membership action is **Renew** once the member has any
+  membership, otherwise **Add membership**.
+- The dialog pre-fills the latest plan and the next start date (BR-H3).
+
+**Branding**
+
+- The favicon and home-screen icon come from the client logo
+  (`public/favicon.png`, `public/apple-touch-icon.png`).
+
+**Membership history**
+
+- The most recent membership shows its real status tag. Older periods that have
+  a newer membership after them show a neutral **"Ended"** tag (secondary, check
+  icon) instead of a red "Expired", so a loyal member's history doesn't look alarming.
+
+**Phone numbers**
+
+- In follow-up lists, phone numbers are `tel:` links (tap to call on mobile) and never wrap.

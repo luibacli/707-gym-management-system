@@ -15,6 +15,8 @@ export interface Member {
   archived: boolean
   /** Current status on today's date in the gym timezone (BR-S3). */
   status: MemberStatus
+  /** Expiry of the membership that determines `status`, if any. */
+  currentExpiryDate?: string
   createdAt: string
   updatedAt: string
 }

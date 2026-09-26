@@ -13,7 +13,17 @@ export default defineNuxtConfig({
     'nuxt-auth-utils',
   ],
 
-  css: ['~/assets/css/main.css'],
+  app: {
+    head: {
+      htmlAttrs: { lang: 'en' },
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+      ],
+    },
+  },
+
+  css: ['primeicons/primeicons.css', '~/assets/css/main.css'],
 
   vite: {
     plugins: [tailwindcss()],

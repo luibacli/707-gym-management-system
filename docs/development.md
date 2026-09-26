@@ -37,6 +37,25 @@ pnpm staff set-password --email staff@example.com                 # also signs o
 pnpm staff deactivate --email staff@example.com
 ```
 
+## Demo
+
+The client demo runs the **production build** against a separate database. The
+walkthrough is in `docs/demo/demo-script.md`.
+
+| Variable              | Purpose                                                          |
+| --------------------- | ---------------------------------------------------------------- |
+| `DEMO_MONGODB_URI`    | Demo database. **The name must end in `_demo`**, or the reset refuses to run |
+| `DEMO_STAFF_EMAIL`    | Demo sign-in email, created by the reset                         |
+| `DEMO_STAFF_PASSWORD` | Demo sign-in password (8+ characters)                            |
+
+```bash
+pnpm demo:reset   # wipe the demo DB and reseed 60 members, dates relative to today
+pnpm demo:start   # build, then serve on http://localhost:3000 using the demo DB
+```
+
+The seed is fixed, so the same names come back on every reset. Emails use
+`example.com`. The seed was verified to produce no overlapping memberships.
+
 ## Commands
 
 | Task            | Command            |

@@ -40,4 +40,28 @@ test.describe('dashboard', () => {
     const statusCells = page.locator('tbody tr').getByText(/^(Active|Near expiry|No membership)$/)
     await expect(statusCells).toHaveCount(0)
   })
+
+  test('"Renew" on an expiring member opens the renewal dialog', async ({ page }, testInfo) => {
+    await signIn(page)
+    const lastName = uniqueLastName(testInfo.project.name)
+    const member = await (await page.request.post('/api/members', {
+      data: { firstName: 'Soon', lastName, phone: '09171234567' },
+    })).json()
+    const today = await page.evaluate(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date()))
+    // A monthly membership that started 28 days ago expires within the next 3 days.
+    const start = new Date(`${today}T00:00:00Z`)
+    start.setUTCDate(start.getUTCDate() - 28)
+    await page.request.post(`/api/members/${member.id}/memberships`, {
+      data: { plan: 'monthly', startDate: start.toISOString().slice(0, 10) },
+    })
+
+    await page.reload()
+    await page.getByRole('link', { name: `Renew Soon ${lastName}` }).click()
+    const dialog = page.getByRole('dialog', { name: 'Renew membership' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Monthly' })).toHaveAttribute('aria-pressed', 'true')
+    await dialog.getByRole('button', { name: 'Renew' }).click()
+    await expect(dialog).toBeHidden()
+    await expect(page.getByRole('listitem').filter({ hasText: 'Scheduled' })).toHaveCount(1)
+  })
 })

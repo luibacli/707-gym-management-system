@@ -2,8 +2,7 @@ import type { HydratedDocument } from 'mongoose'
 import { MEMBER_COLLATION, MemberModel, type MemberFields } from '../models/Member'
 import { MEMBER_PAGE_SIZE, type MemberInput, type MemberListQuery } from '../../shared/schemas/member'
 import type { ListResponse, Member } from '../../shared/types/member'
-import type { MemberStatus } from '../../shared/utils/membership'
-import { getMemberStatuses } from './memberships'
+import { getMembershipSummaries, type MembershipSummary } from './memberships'
 
 const EDITABLE_FIELDS = [
   'firstName', 'lastName', 'phone', 'email', 'birthDate', 'address',
@@ -12,7 +11,9 @@ const EDITABLE_FIELDS = [
 
 const SEARCH_FIELDS = ['firstName', 'lastName', 'phone', 'email'] as const
 
-function toMember(doc: HydratedDocument<MemberFields>, status: MemberStatus): Member {
+const NO_MEMBERSHIP: MembershipSummary = { status: 'none', renewedAhead: false }
+
+function toMember(doc: HydratedDocument<MemberFields>, summary: MembershipSummary): Member {
   return {
     id: doc.id as string,
     firstName: doc.firstName,
@@ -25,7 +26,8 @@ function toMember(doc: HydratedDocument<MemberFields>, status: MemberStatus): Me
     emergencyContactPhone: doc.emergencyContactPhone ?? undefined,
     notes: doc.notes ?? undefined,
     archived: doc.archived,
-    status,
+    status: summary.status,
+    currentExpiryDate: summary.currentExpiryDate,
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   }
@@ -67,9 +69,9 @@ async function listMembersPage(query: MemberListQuery): Promise<ListResponse<Mem
     MemberModel.countDocuments(filter),
   ])
 
-  const statuses = await getMemberStatuses(docs.map(doc => doc._id))
+  const summaries = await getMembershipSummaries(docs.map(doc => doc._id))
   return {
-    items: docs.map(doc => toMember(doc, statuses.get(doc.id as string) ?? 'none')),
+    items: docs.map(doc => toMember(doc, summaries.get(doc.id as string) ?? NO_MEMBERSHIP)),
     total,
     page,
     pageSize: MEMBER_PAGE_SIZE,
@@ -87,15 +89,15 @@ async function listMembersByStatus(query: MemberListQuery): Promise<ListResponse
     .sort({ lastName: 1, firstName: 1, _id: 1 })
     .collation(MEMBER_COLLATION)
     .lean()
-  const statuses = await getMemberStatuses(ids.map(doc => doc._id))
-  const matchingIds = ids.map(doc => doc._id.toString()).filter(id => statuses.get(id) === status)
+  const summaries = await getMembershipSummaries(ids.map(doc => doc._id))
+  const matchingIds = ids.map(doc => doc._id.toString()).filter(id => summaries.get(id)?.status === status)
 
   const pageIds = matchingIds.slice((page - 1) * MEMBER_PAGE_SIZE, page * MEMBER_PAGE_SIZE)
   const docs = await MemberModel.find({ _id: { $in: pageIds } })
   const byId = new Map(docs.map(doc => [doc.id as string, doc]))
 
   return {
-    items: pageIds.map(id => toMember(byId.get(id)!, status!)),
+    items: pageIds.map(id => toMember(byId.get(id)!, summaries.get(id) ?? NO_MEMBERSHIP)),
     total: matchingIds.length,
     page,
     pageSize: MEMBER_PAGE_SIZE,
@@ -104,8 +106,8 @@ async function listMembersByStatus(query: MemberListQuery): Promise<ListResponse
 
 /** Maps a member document to the API shape, including its current status. */
 async function withStatus(doc: HydratedDocument<MemberFields>): Promise<Member> {
-  const statuses = await getMemberStatuses([doc._id])
-  return toMember(doc, statuses.get(doc.id as string) ?? 'none')
+  const summaries = await getMembershipSummaries([doc._id])
+  return toMember(doc, summaries.get(doc.id as string) ?? NO_MEMBERSHIP)
 }
 
 export async function getMember(id: string): Promise<Member | null> {
@@ -115,7 +117,7 @@ export async function getMember(id: string): Promise<Member | null> {
 
 export async function createMember(input: MemberInput): Promise<Member> {
   const doc = await MemberModel.create(input)
-  return toMember(doc, 'none')
+  return toMember(doc, NO_MEMBERSHIP)
 }
 
 /** Replaces all editable fields; optional fields left empty are cleared. */

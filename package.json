@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "staff": "node --env-file=.env scripts/staff.ts"
+    "staff": "node --env-file=.env scripts/staff.ts",
+    "demo:reset": "node --env-file=.env scripts/demo.ts",
+    "demo:start": "nuxt build && node --env-file=.env scripts/demo-start.ts"
   },
   "dependencies": {
     "@pinia/nuxt": "^1.0.2",
@@ -24,6 +26,7 @@
     "nuxt": "^4.5.2",
     "nuxt-auth-utils": "^0.5.30",
     "pinia": "^4.0.3",
+    "primeicons": "^7.0.0",
     "primevue": "^4.5.5",
     "tailwindcss": "^4.3.3",
     "tailwindcss-primeui": "^0.6.1",

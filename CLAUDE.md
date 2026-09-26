@@ -31,6 +31,7 @@ needed, explain why before installing it.
 | Lint            | `pnpm lint`       |
 | Typecheck       | `pnpm typecheck`  |
 | Build           | `pnpm build`      |
+| Demo            | `pnpm demo:reset`, then `pnpm demo:start` |
 
 Package manager: pnpm 11. Node version: 24. Setup and env vars: `docs/development.md`.
 
@@ -104,6 +105,8 @@ Follow existing project conventions first. Defaults when none exist:
 - Types: PascalCase domain types. Mongoose models: singular domain names.
 - API: REST-style Nuxt filesystem routes.
 - Response and error format: follow `docs/api.md`.
+- Server models imported by CLI scripts (`scripts/`) must use explicit `.ts`
+  extensions for relative imports, because the scripts run under plain Node.
 - API routes: define with `defineApiHandler`, not `defineEventHandler` (ADR-003).
 - Client data calls: use `useApi` / `useNuxtApp().$api`, not `useFetch` / `$fetch`,
   so an expired session redirects to sign-in. The only exception is the login page.

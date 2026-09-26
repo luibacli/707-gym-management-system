@@ -26,13 +26,50 @@ describe('dashboard summary', () => {
     const archived = await member('Archived', today)
     await setMemberArchived(archived.id, true)
 
-    expect(await getDashboardSummary()).toEqual({
+    expect(await getDashboardSummary()).toMatchObject({
       asOf: today, totalMembers: 4, active: 1, nearExpiry: 1, expired: 1, noMembership: 1,
     })
   })
 
   it('returns zeros when there are no members', async () => {
     expect(await getDashboardSummary()).toMatchObject({ totalMembers: 0, active: 0, nearExpiry: 0, expired: 0 })
+  })
+})
+
+describe('dashboard attention lists', () => {
+  async function renew(memberId: string, startDate: string) {
+    const result = await createMembership(memberId, { plan: 'monthly', startDate })
+    if (!result.ok) throw new Error(result.reason)
+  }
+
+  it('lists near-expiry members soonest first, skipping those who renewed ahead', async () => {
+    const later = await member('Later', addDays(today, -26)) // expires in ~2–5 days
+    const sooner = await member('Sooner', addDays(today, -30)) // expires today or within ~1 day
+    const renewed = await member('Renewed', addDays(today, -28))
+    const current = (await getDashboardSummary()).expiringSoon.items.find(i => i.memberId === renewed.id)!
+    await renew(renewed.id, addDays(current.expiryDate, 1))
+
+    const { expiringSoon } = await getDashboardSummary()
+    expect(expiringSoon.items.map(i => i.memberId)).toEqual([sooner.id, later.id])
+    expect(expiringSoon.total).toBe(2)
+    expect(expiringSoon.items[0]).toMatchObject({ firstName: 'Test', lastName: 'Sooner', plan: 'monthly' })
+    expect(expiringSoon.items[0]!.daysLeft).toBeGreaterThanOrEqual(0)
+  })
+
+  it('lists recently expired members, most recent first, within 30 days', async () => {
+    const recent = await member('Recent', addDays(today, -40)) // expired ~9–12 days ago
+    const older = await member('Older', addDays(today, -50)) // expired ~19–22 days ago
+    await member('LongAgo', '2020-01-01')
+
+    const { recentlyExpired } = await getDashboardSummary()
+    expect(recentlyExpired.items.map(i => i.memberId)).toEqual([recent.id, older.id])
+    expect(recentlyExpired.items[0]!.daysLeft).toBeLessThan(0)
+  })
+
+  it('excludes archived members', async () => {
+    const archived = await member('Archived', addDays(today, -28))
+    await setMemberArchived(archived.id, true)
+    expect((await getDashboardSummary()).expiringSoon.total).toBe(0)
   })
 })
 

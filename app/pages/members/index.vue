@@ -66,18 +66,22 @@ function onPage(event: DataTablePageEvent) {
         as="router-link"
         to="/members/new"
         label="Add member"
+        icon="pi pi-plus"
       />
     </div>
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <InputText
-          v-model="searchInput"
-          type="search"
-          placeholder="Search name, phone, or email"
-          aria-label="Search members"
-          class="w-full sm:w-72"
-        />
+        <IconField class="w-full sm:w-72">
+          <InputIcon class="pi pi-search" />
+          <InputText
+            v-model="searchInput"
+            type="search"
+            placeholder="Search name, phone, or email"
+            aria-label="Search members"
+            fluid
+          />
+        </IconField>
         <Select
           v-model="status"
           :options="statusOptions"
@@ -156,20 +160,26 @@ function onPage(event: DataTablePageEvent) {
         />
         <Column
           header="Email"
-          header-class="hidden md:table-cell"
-          body-class="hidden md:table-cell"
+          header-class="hidden lg:table-cell"
+          body-class="hidden lg:table-cell"
         >
           <template #body="{ data: member }">
             <span class="break-all">{{ member.email ?? '—' }}</span>
           </template>
         </Column>
         <Column
-          header="Added"
-          header-class="hidden lg:table-cell"
-          body-class="hidden lg:table-cell"
+          header="Expires"
+          header-class="hidden md:table-cell"
+          body-class="hidden md:table-cell whitespace-nowrap"
         >
           <template #body="{ data: member }">
-            {{ formatTimestampDate(member.createdAt) }}
+            <template v-if="member.currentExpiryDate">
+              {{ formatCalendarDate(member.currentExpiryDate) }}
+            </template>
+            <span
+              v-else
+              class="text-surface-400"
+            >—</span>
           </template>
         </Column>
         <template #empty>

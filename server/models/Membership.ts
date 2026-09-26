@@ -1,5 +1,6 @@
 import mongoose, { Schema, type InferSchemaType, type Model } from 'mongoose'
-import { MEMBERSHIP_PLANS } from '../../shared/utils/membership'
+// Explicit .ts: models are also loaded by CLI scripts under plain Node (scripts/).
+import { MEMBERSHIP_PLANS } from '../../shared/utils/membership.ts'
 
 // A member's membership periods (BR-H1). Dates are "YYYY-MM-DD" (ADR-006).
 const membershipSchema = new Schema(

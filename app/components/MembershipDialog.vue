@@ -13,6 +13,10 @@ const props = defineProps<{
   membership?: Membership
   /** Default start date for a new membership (BR-H3). */
   suggestedStartDate: string
+  /** Default plan for a new membership, e.g. the member's latest plan when renewing. */
+  defaultPlan?: MembershipPlan
+  /** Labels the dialog as a renewal (the member already has memberships). */
+  renewal?: boolean
 }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
@@ -29,6 +33,11 @@ const submitting = ref(false)
 const planOptions = MEMBERSHIP_PLANS.map(value => ({ label: PLAN_LABELS[value], value }))
 const errors = computed(() => ({ ...serverErrors.value, ...clientErrors.value }))
 const isEdit = computed(() => !!props.membership)
+const title = computed(() => (isEdit.value ? 'Edit membership' : props.renewal ? 'Renew membership' : 'Add membership'))
+const submitLabel = computed(() => (isEdit.value ? 'Save changes' : props.renewal ? 'Renew' : 'Add membership'))
+const successMessage = computed(() =>
+  isEdit.value ? 'Membership updated' : props.renewal ? 'Membership renewed' : 'Membership added',
+)
 
 // Preview only; the server calculates the stored expiry date (BR-P2).
 const expiryPreview = computed(() =>
@@ -37,7 +46,7 @@ const expiryPreview = computed(() =>
 
 watch(visible, (open) => {
   if (!open) return
-  plan.value = props.membership?.plan ?? 'monthly'
+  plan.value = props.membership?.plan ?? props.defaultPlan ?? 'monthly'
   startDate.value = fromCalendarDate(props.membership?.startDate ?? props.suggestedStartDate)
   clientErrors.value = {}
   serverErrors.value = {}
@@ -64,7 +73,7 @@ async function save() {
     const membership = props.membership
       ? await $api<Membership>(`${base}/${props.membership.id}`, { method: 'PATCH', body: parsed.data })
       : await $api<Membership>(base, { method: 'POST', body: parsed.data })
-    toast.add({ severity: 'success', summary: isEdit.value ? 'Membership updated' : 'Membership added', life: 3000 })
+    toast.add({ severity: 'success', summary: successMessage.value, life: 3000 })
     visible.value = false
     emit('saved', membership)
   }
@@ -82,7 +91,7 @@ async function save() {
   <Dialog
     v-model:visible="visible"
     modal
-    :header="isEdit ? 'Edit membership' : 'Add membership'"
+    :header="title"
     class="w-[calc(100vw-2rem)] max-w-md"
   >
     <form
@@ -153,7 +162,7 @@ async function save() {
       <Button
         type="submit"
         form="membership-form"
-        :label="isEdit ? 'Save changes' : 'Add membership'"
+        :label="submitLabel"
         :loading="submitting"
       />
     </template>

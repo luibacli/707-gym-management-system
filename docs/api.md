@@ -91,8 +91,10 @@ All routes require a staff session. The body is `{ plan: 'monthly' | 'annual', s
   - 404 `NOT_FOUND` for an unknown member or membership, or a membership that belongs to another member
   - 409 `CONFLICT` when the dates overlap another membership of the same member (BR-H2).
     The message names the conflicting dates.
-- **Member responses** (list, get, create, update, archive, restore) now include
-  `status`: `active | near-expiry | expired | none` (BR-S3).
+- **Member responses** (list, get, create, update, archive, restore) include:
+  - `status`: `active | near-expiry | expired | none` (BR-S3)
+  - `currentExpiryDate`: the expiry of the membership that determines the status.
+    A scheduled renewal is not used. Omitted when there's no membership.
 
 ### Dashboard
 
@@ -100,10 +102,22 @@ All routes require a staff session. The body is `{ plan: 'monthly' | 'annual', s
 members by current status (ADR-008):
 
 ```json
-{ "asOf": "2026-09-26", "totalMembers": 46, "active": 2, "nearExpiry": 0, "expired": 21, "noMembership": 23 }
+{
+  "asOf": "2026-09-26", "totalMembers": 57, "active": 30, "nearExpiry": 8, "expired": 13, "noMembership": 6,
+  "expiringSoon": { "items": [ { "memberId": "…", "firstName": "Rafael", "lastName": "Navarro", "phone": "…",
+                                 "plan": "monthly", "expiryDate": "2026-09-26", "daysLeft": 0 } ], "total": 6 },
+  "recentlyExpired": { "items": [ … ], "total": 5 }
+}
 ```
 
-`totalMembers = active + nearExpiry + expired + noMembership`. `asOf` is today's date in Asia/Manila.
+- `totalMembers = active + nearExpiry + expired + noMembership`. `asOf` is today's date in Asia/Manila.
+- `expiringSoon`: near-expiry members who haven't renewed ahead (no scheduled
+  membership), soonest first.
+- `recentlyExpired`: members whose current membership expired within the last
+  30 days and who haven't renewed, most recent first.
+- Each list returns up to 8 `items`, plus the full `total`. `daysLeft` is negative
+  once expired. The 8-item limit and the 30-day window are dashboard display
+  settings, not business rules.
 
 ## Unknown routes
 

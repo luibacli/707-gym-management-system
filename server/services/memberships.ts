@@ -5,8 +5,18 @@ import type { MembershipInput } from '../../shared/schemas/membership'
 import type { Membership } from '../../shared/types/member'
 import { todayInGymTimeZone } from '../../shared/utils/date'
 import {
-  calculateExpiryDate, getMemberStatus, getMembershipStatus, type MemberStatus, type MembershipDates,
+  calculateExpiryDate, getCurrentMembership, getMemberStatus, getMembershipStatus, hasScheduledMembership,
+  type MemberStatus, type MembershipDates, type MembershipPlan,
 } from '../../shared/utils/membership'
+
+export interface MembershipSummary {
+  status: MemberStatus
+  /** Plan and expiry of the membership that determines the status (BR-S3). */
+  currentPlan?: MembershipPlan
+  currentExpiryDate?: string
+  /** Already has a membership starting after today. */
+  renewedAhead: boolean
+}
 
 export type MembershipResult
   = | { ok: true, membership: Membership }
@@ -32,21 +42,40 @@ export async function listMemberships(memberId: string, today = todayInGymTimeZo
   return docs.map(doc => toMembership(doc, today))
 }
 
-/** Current status for each member (BR-S3), using one query for all of them. */
-export async function getMemberStatuses(
+/** Membership summary for each member (BR-S3), using one query for all of them. */
+export async function getMembershipSummaries(
   memberIds: (string | Types.ObjectId)[],
   today = todayInGymTimeZone(),
-): Promise<Map<string, MemberStatus>> {
+): Promise<Map<string, MembershipSummary>> {
   const rows = await MembershipModel.find({ memberId: { $in: memberIds } })
-    .select('memberId startDate expiryDate')
+    .select('memberId plan startDate expiryDate')
     .lean()
 
-  const byMember = new Map<string, MembershipDates[]>()
+  const byMember = new Map<string, (MembershipDates & { plan: MembershipPlan })[]>()
   for (const row of rows) {
     const key = row.memberId.toString()
     byMember.set(key, [...(byMember.get(key) ?? []), row])
   }
-  return new Map(memberIds.map(id => [id.toString(), getMemberStatus(byMember.get(id.toString()) ?? [], today)]))
+
+  return new Map(memberIds.map((id) => {
+    const memberships = byMember.get(id.toString()) ?? []
+    const current = getCurrentMembership(memberships, today)
+    return [id.toString(), {
+      status: getMemberStatus(memberships, today),
+      currentPlan: current?.plan,
+      currentExpiryDate: current?.expiryDate,
+      renewedAhead: hasScheduledMembership(memberships, today),
+    }]
+  }))
+}
+
+/** Current status for each member (BR-S3). */
+export async function getMemberStatuses(
+  memberIds: (string | Types.ObjectId)[],
+  today = todayInGymTimeZone(),
+): Promise<Map<string, MemberStatus>> {
+  const summaries = await getMembershipSummaries(memberIds, today)
+  return new Map([...summaries].map(([id, summary]) => [id, summary.status]))
 }
 
 /** Finds a membership of this member that overlaps the given dates (BR-H2). */

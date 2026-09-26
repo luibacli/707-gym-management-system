@@ -30,8 +30,8 @@ test.describe('memberships', () => {
     await expect(items.first().getByText('Active', { exact: true })).toBeVisible()
 
     // Renewal defaults to the day after the current expiry, so it's scheduled.
-    await page.getByRole('button', { name: 'Add membership' }).click()
-    await page.getByRole('dialog', { name: 'Add membership' }).getByRole('button', { name: 'Add membership' }).click()
+    await page.getByRole('button', { name: 'Renew' }).click()
+    await page.getByRole('dialog', { name: 'Renew membership' }).getByRole('button', { name: 'Renew' }).click()
     await expect(items).toHaveCount(2)
     await expect(items.first().getByText('Scheduled', { exact: true })).toBeVisible()
 
@@ -53,7 +53,8 @@ test.describe('memberships', () => {
     await editDialog.getByRole('button', { name: 'Save changes' }).click()
     await expect(editDialog).toBeHidden()
     await expect(items.last()).toContainText('Jan 1, 2020 – Feb 1, 2020')
-    await expect(items.last().getByText('Expired', { exact: true })).toBeVisible()
+    // A past period followed by a newer membership is shown as history ("Ended").
+    await expect(items.last().getByText('Ended', { exact: true })).toBeVisible()
     await expect(page.locator('h1 + *').getByText('Expired', { exact: true })).toBeVisible()
 
     // The members list shows the status too.
