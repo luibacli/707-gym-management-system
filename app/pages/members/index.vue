@@ -41,8 +41,10 @@ watch(archived, () => {
   page.value = 1
 })
 
+// lazy: on client-side navigation the page renders at once and shows skeleton rows while loading.
 const { data, status: fetchStatus, error, refresh } = await useApi<ListResponse<Member>>('/api/members', {
   query: { search, archived, page, status: computed(() => status.value ?? undefined) },
+  lazy: true,
 })
 
 const pageSize = computed(() => data.value?.pageSize ?? 20)
@@ -134,7 +136,7 @@ function onPage(event: DataTablePageEvent) {
         :rows="pageSize"
         :first="(page - 1) * pageSize"
         :total-records="data?.total ?? 0"
-        :loading="fetchStatus === 'pending'"
+        :loading="fetchStatus === 'pending' && !!data"
         @page="onPage"
       >
         <Column header="Name">
@@ -183,7 +185,36 @@ function onPage(event: DataTablePageEvent) {
           </template>
         </Column>
         <template #empty>
-          <div class="py-8 text-center text-surface-600">
+          <!-- No data yet: skeleton rows instead of an empty-state message. -->
+          <div
+            v-if="!data"
+            class="flex flex-col gap-4 py-2"
+            aria-hidden="true"
+          >
+            <div
+              v-for="n in 6"
+              :key="n"
+              class="flex items-center gap-6"
+            >
+              <Skeleton
+                width="30%"
+                height="1rem"
+              />
+              <Skeleton
+                width="6rem"
+                height="1.5rem"
+              />
+              <Skeleton
+                width="20%"
+                height="1rem"
+                class="hidden sm:block"
+              />
+            </div>
+          </div>
+          <div
+            v-else
+            class="py-8 text-center text-surface-600"
+          >
             <template v-if="search">
               No members match “{{ search }}”{{ status ? ` with status “${STATUS_LABELS[status]}”` : '' }}.
             </template>

@@ -122,7 +122,9 @@ Do not rename existing code just to match these defaults.
 - Follow `docs/ui-design.md` for brand, color, typography, spacing, and visual usage.
 - The client-provided logo is a brand reference, not a requirement to reproduce its visual style throughout the application.
 - Semantic colors (success, warning, danger) keep their meaning only.
-- Every data view handles loading, empty, and error states.
+- Every data view handles loading, empty, and error states. Load page data with
+  `useApi(url, { lazy: true })` and show skeletons, so pages render immediately
+  (`docs/ui-design.md` → Loading).
 - For a major new screen, propose the layout (structure, hierarchy, primary actions) before implementing it.
 
 ## Hard Rules

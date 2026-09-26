@@ -4,7 +4,8 @@ import type { MemberStatus } from '#shared/utils/membership'
 
 useHead({ title: 'Dashboard · 707 Gym' })
 
-const { data: summary, status, error, refresh } = await useApi<DashboardSummary>('/api/dashboard')
+// lazy: on client-side navigation the page renders at once and shows skeletons while loading.
+const { data: summary, error, refresh } = await useApi<DashboardSummary>('/api/dashboard', { lazy: true })
 
 interface Tile {
   label: string
@@ -81,7 +82,7 @@ const numberFormat = new Intl.NumberFormat('en-US')
         class="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4"
         aria-label="Membership summary"
       >
-        <template v-if="status === 'pending' && !summary">
+        <template v-if="!summary">
           <li
             v-for="n in 4"
             :key="n"
@@ -129,7 +130,44 @@ const numberFormat = new Intl.NumberFormat('en-US')
         >Add the first member</NuxtLink>
       </p>
 
-      <template v-else-if="summary">
+      <div
+        v-else-if="!summary"
+        class="grid gap-4 lg:grid-cols-2"
+        aria-hidden="true"
+      >
+        <div
+          v-for="n in 2"
+          :key="n"
+          class="flex flex-col gap-4 rounded-lg border border-surface-200 bg-surface-0 p-4"
+        >
+          <Skeleton
+            width="40%"
+            height="1.25rem"
+          />
+          <div
+            v-for="row in 4"
+            :key="row"
+            class="flex items-center justify-between gap-3"
+          >
+            <div class="flex w-2/3 flex-col gap-2">
+              <Skeleton
+                width="60%"
+                height="1rem"
+              />
+              <Skeleton
+                width="90%"
+                height="0.875rem"
+              />
+            </div>
+            <Skeleton
+              width="5rem"
+              height="2rem"
+            />
+          </div>
+        </div>
+      </div>
+
+      <template v-else>
         <div class="grid gap-4 lg:grid-cols-2">
           <AttentionPanel
             title="Expiring this week"

@@ -9,7 +9,8 @@ const route = useRoute()
 const id = route.params.id as string
 const detailPath = `/members/${id}`
 
-const { data: member, error, refresh } = await useApi<Member>(`/api/members/${id}`)
+// lazy: on client-side navigation the page renders at once with a skeleton while loading.
+const { data: member, error, refresh } = await useApi<Member>(`/api/members/${id}`, { lazy: true })
 const notFound = computed(() => error.value?.statusCode === 404)
 
 useHead({ title: 'Edit member · 707 Gym' })
@@ -75,7 +76,21 @@ async function save(input: MemberInput) {
       />
     </div>
 
-    <template v-else-if="member">
+    <div
+      v-else-if="!member"
+      class="flex flex-col gap-4"
+      aria-hidden="true"
+    >
+      <Skeleton
+        width="14rem"
+        height="1.75rem"
+      />
+      <Skeleton
+        height="18rem"
+      />
+    </div>
+
+    <template v-else>
       <h1 class="text-xl font-semibold">
         Edit {{ member.firstName }} {{ member.lastName }}
       </h1>

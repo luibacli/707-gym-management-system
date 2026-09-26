@@ -172,3 +172,16 @@ professional software interface.
 **Phone numbers**
 
 - In follow-up lists, phone numbers are `tel:` links (tap to call on mobile) and never wrap.
+
+**Loading** (render first, fill in data)
+
+- Pages load their data with `useApi(url, { lazy: true })`. On client-side
+  navigation the page (title, controls, layout) renders immediately and shows
+  PrimeVue `Skeleton` placeholders shaped like the content. A full page load still
+  arrives server-rendered with data.
+- Show empty states ("No members yet") only after data has loaded (`data` is set),
+  never while it's loading.
+- A table's own loading overlay is for **refreshing** data already on screen
+  (`loading && !!data`), not the first load.
+- Independent requests on one page start together (`Promise.all([...useApi()])`).
+- A brand-colored top bar (`NuxtLoadingIndicator`) shows during route changes.

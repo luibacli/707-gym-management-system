@@ -6,12 +6,15 @@ const { $api } = useNuxtApp()
 const route = useRoute()
 const id = route.params.id as string
 
-const { data: member, error, refresh } = await useApi<Member>(`/api/members/${id}`)
-const {
-  data: memberships,
-  error: membershipsError,
-  refresh: refreshMemberships,
-} = await useApi<Membership[]>(`/api/members/${id}/memberships`)
+// Both requests start together. lazy: on client-side navigation the page renders at once
+// with skeletons; a full page load still arrives server-rendered with data.
+const [
+  { data: member, error, refresh },
+  { data: memberships, error: membershipsError, refresh: refreshMemberships },
+] = await Promise.all([
+  useApi<Member>(`/api/members/${id}`, { lazy: true }),
+  useApi<Membership[]>(`/api/members/${id}/memberships`, { lazy: true }),
+])
 const notFound = computed(() => error.value?.statusCode === 404)
 const fullName = computed(() => (member.value ? `${member.value.firstName} ${member.value.lastName}` : ''))
 
@@ -57,14 +60,17 @@ function openMembershipDialog(membership?: Membership) {
   dialogVisible.value = true
 }
 
-// Dashboard "Renew" links open the renewal dialog directly (?renew=1).
+// Dashboard "Renew" links open the renewal dialog directly (?renew=1), once memberships have loaded.
 const router = useRouter()
-onMounted(() => {
-  if (route.query.renew === '1' && memberships.value) {
+if (import.meta.client && route.query.renew === '1') {
+  let opened = false
+  watch(memberships, (loaded) => {
+    if (opened || !loaded) return
+    opened = true
     openMembershipDialog()
     router.replace({ query: { ...route.query, renew: undefined } })
-  }
-})
+  }, { immediate: true })
+}
 
 async function onMembershipSaved() {
   // The member's status depends on their memberships.
@@ -128,7 +134,34 @@ const details = computed(() => {
       />
     </div>
 
-    <template v-else-if="member">
+    <div
+      v-else-if="!member"
+      class="flex flex-col gap-4"
+      aria-hidden="true"
+    >
+      <Skeleton
+        width="16rem"
+        height="1.75rem"
+      />
+      <div class="grid gap-4 rounded-lg border border-surface-200 bg-surface-0 p-4 sm:grid-cols-2 sm:p-6">
+        <div
+          v-for="n in 6"
+          :key="n"
+          class="flex flex-col gap-2"
+        >
+          <Skeleton
+            width="30%"
+            height="0.875rem"
+          />
+          <Skeleton
+            width="60%"
+            height="1rem"
+          />
+        </div>
+      </div>
+    </div>
+
+    <template v-else>
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <h1 class="text-xl font-semibold">
@@ -228,8 +261,19 @@ const details = computed(() => {
             @click="refreshMemberships()"
           />
         </div>
+        <div
+          v-else-if="!memberships"
+          class="flex flex-col gap-3 p-4 sm:px-6"
+          aria-hidden="true"
+        >
+          <Skeleton
+            v-for="n in 3"
+            :key="n"
+            height="2.5rem"
+          />
+        </div>
         <p
-          v-else-if="!memberships?.length"
+          v-else-if="!memberships.length"
           class="p-4 text-surface-600 sm:px-6"
         >
           No memberships yet.
