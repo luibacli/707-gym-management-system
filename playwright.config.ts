@@ -14,6 +14,10 @@ const e2eDatabase = process.env.E2E_MONGODB_URI
 export default defineConfig({
   testDir: './test/e2e',
   globalSetup: './test/e2e/global-setup.ts',
+  // The flow tests make many round-trips to a remote database (Atlas); 30s is too tight in parallel runs.
+  timeout: 60_000,
+  // Assertions after a save wait for API round-trips to the remote database.
+  expect: { timeout: 10_000 },
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',

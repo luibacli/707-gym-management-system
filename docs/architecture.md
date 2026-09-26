@@ -46,6 +46,7 @@ Folders marked "planned" are created when the first feature needs them.
 | Dates         | Calendar dates as `YYYY-MM-DD` strings        | ADR-006 |
 | Test DBs      | In-memory for integration; `707_e2e` for e2e  | ADR-007 |
 | Status counts | Calculated in the app at request time          | ADR-008 |
+| Demo hosting  | Vercel (Nitro `vercel` preset), demo DB only   | ADR-009 |
 | State         | Pinia via `@pinia/nuxt`                       | —       |
 
 ## Database connection

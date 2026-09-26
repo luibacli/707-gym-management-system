@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn, uniqueLastName } from './helpers'
+import { fillDate, gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn, uniqueLastName } from './helpers'
 
 test.describe('memberships', () => {
   // Writes data, so it only runs against the separate e2e database (ADR-007).
@@ -39,16 +39,14 @@ test.describe('memberships', () => {
     await items.first().getByRole('button', { name: /^Edit / }).click()
     const editDialog = page.getByRole('dialog', { name: 'Edit membership' })
     const today = await page.evaluate(() => new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: 'Asia/Manila' }).format(new Date()))
-    await editDialog.getByLabel('Start date').fill(today)
-    await editDialog.getByLabel('Start date').press('Escape')
+    await fillDate(page, editDialog.getByLabel('Start date'), today)
     await editDialog.getByRole('button', { name: 'Save changes' }).click()
     await expect(editDialog.getByRole('alert')).toContainText('overlaps an existing membership')
     await editDialog.getByRole('button', { name: 'Cancel' }).click()
 
     // Moving the current membership into the past makes the member expired (BR-S3).
     await items.last().getByRole('button', { name: /^Edit / }).click()
-    await editDialog.getByLabel('Start date').fill('Jan 1, 2020')
-    await editDialog.getByLabel('Start date').press('Escape')
+    await fillDate(page, editDialog.getByLabel('Start date'), 'Jan 1, 2020')
     await expect(editDialog).toContainText('Expires Feb 1, 2020')
     await editDialog.getByRole('button', { name: 'Save changes' }).click()
     await expect(editDialog).toBeHidden()

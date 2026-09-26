@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 export const staffEmail = process.env.E2E_STAFF_EMAIL
 export const staffPassword = process.env.E2E_STAFF_PASSWORD
@@ -23,4 +23,17 @@ export async function signIn(page: Page) {
 /** A unique last name for test data; parallel workers can share a millisecond. */
 export function uniqueLastName(projectName: string) {
   return `E2E${Date.now()}${Math.random().toString(36).slice(2, 8)}${projectName}`
+}
+
+/**
+ * Types a date into a PrimeVue DatePicker and closes its popup. Waits for the popup
+ * before pressing Escape; if Escape arrived before the popup opened, it would close
+ * a surrounding dialog instead.
+ */
+export async function fillDate(page: Page, input: Locator, value: string) {
+  await input.fill(value)
+  const popup = page.getByRole('dialog', { name: 'Choose Date' })
+  await popup.waitFor()
+  await input.press('Escape')
+  await expect(popup).toBeHidden()
 }

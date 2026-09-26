@@ -37,6 +37,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Server-only. Set via NUXT_MONGODB_URI.
     mongodbUri: '',
+    // Read the client IP from X-Forwarded-For (NUXT_TRUST_PROXY=true). Enable only behind
+    // a proxy that overwrites the header, such as Vercel; otherwise clients could spoof it.
+    trustProxy: false,
+  },
+
+  // Staff-only app: keep every page out of search engines (see also public/robots.txt).
+  routeRules: {
+    '/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
   },
 
   typescript: {

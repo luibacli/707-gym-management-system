@@ -23,6 +23,7 @@ to run them are listed under `allowBuilds` in `pnpm-workspace.yaml`.
 | ----------------------- | -------- | ------------------------------------------------ |
 | `NUXT_MONGODB_URI`      | Yes      | MongoDB connection string. The server won't start without it. |
 | `NUXT_SESSION_PASSWORD` | Yes (prod) | Session cookie encryption key, 32+ characters. Generated automatically in dev if empty. |
+| `NUXT_TRUST_PROXY`      | No       | `true` only behind a proxy that overwrites `X-Forwarded-For` (Vercel). Default `false` |
 | `E2E_MONGODB_URI`       | No       | Separate database for e2e tests (ADR-007), e.g. `…/707_e2e` |
 | `E2E_STAFF_EMAIL`, `E2E_STAFF_PASSWORD` | No | Staff account in the e2e database, created with `pnpm staff` using `NUXT_MONGODB_URI=<e2e uri>` |
 
@@ -55,6 +56,39 @@ pnpm demo:start   # build, then serve on http://localhost:3000 using the demo DB
 
 The seed is fixed, so the same names come back on every reset. Emails use
 `example.com`. The seed was verified to produce no overlapping memberships.
+
+## Deploying the demo to Vercel (ADR-009)
+
+**One-time setup**
+
+1. **Atlas → Database Access:** create a user with the `readWrite` role on
+   `707_demo` only. Use it just for Vercel.
+2. **Atlas → Network Access:** allow `0.0.0.0/0`. Vercel has no fixed IPs; the
+   demo-only user limits the exposure.
+3. **Vercel:** import the GitHub repository. The Nuxt framework preset is detected
+   automatically; leave the build and install commands at their defaults.
+4. **Vercel → Settings → Environment Variables** (Production):
+
+   | Variable                       | Value |
+   | ------------------------------ | ----- |
+   | `NUXT_MONGODB_URI`             | `mongodb+srv://<demo-user>:<password>@<cluster>/707_demo?…` |
+   | `NUXT_SESSION_PASSWORD`        | a new random string, 32+ characters (e.g. `openssl rand -hex 32`) |
+   | `NUXT_TRUST_PROXY`             | `true` |
+   | `ENABLE_EXPERIMENTAL_COREPACK` | `1` (so Vercel uses pnpm from `packageManager`) |
+
+5. **Vercel → Settings → General:** Node.js version **24.x**.
+6. **Vercel → Settings → Functions:** set the region closest to the Atlas cluster.
+7. Deploy. Share the **Production** URL; preview URLs may be behind Vercel's
+   own sign-in (Deployment Protection).
+
+**Before each demo**
+
+```bash
+pnpm demo:reset   # from your machine, with DEMO_MONGODB_URI pointing at 707_demo
+```
+
+Then open the Vercel URL once to warm up the functions, and sign in with the
+`DEMO_STAFF_*` account.
 
 ## Commands
 
@@ -101,4 +135,4 @@ NUXT_MONGODB_URI="<E2E_MONGODB_URI value>" pnpm staff create --email e2e@707gym.
   license key (ADR-004).
 - TypeScript is pinned to `~6.0` because `typescript-eslint` doesn't support
   TypeScript 7 yet.
-- Deployment: the hosting target isn't decided yet (ADR-005).
+- Deployment: the **demo** runs on Vercel (ADR-009). Production hosting isn't decided yet (ADR-005).

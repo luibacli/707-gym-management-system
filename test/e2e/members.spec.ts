@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn, uniqueLastName } from './helpers'
+import { fillDate, gotoHydrated, hasE2eDatabase, hasStaffAccount, signIn, uniqueLastName } from './helpers'
 
 test('member API requires a staff session', async ({ request }) => {
   const response = await request.get('/api/members')
@@ -51,8 +51,7 @@ test.describe('member management', () => {
     await expect(page.getByRole('heading', { name: `Edit Juan ${lastName}` })).toBeVisible()
     await page.getByLabel('Phone', { exact: true }).first().fill('0918 765 4321')
     await page.getByLabel('Email').fill('')
-    await page.getByLabel('Birth date').fill('Mar 5, 1990')
-    await page.getByLabel('Birth date').press('Escape')
+    await fillDate(page, page.getByLabel('Birth date'), 'Mar 5, 1990')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page.getByRole('heading', { name: `Juan ${lastName}` })).toBeVisible()
     await expect(page.getByText('0918 765 4321')).toBeVisible()

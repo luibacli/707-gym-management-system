@@ -7,8 +7,8 @@ let dummyHash: string | undefined
 
 export default defineApiHandler(async (event) => {
   const { email, password } = await validateBody(event, loginSchema)
-  // Direct connection IP only. Behind a proxy, configure trusted X-Forwarded-For first (docs/security.md).
-  const ip = getRequestIP(event)
+  // Behind a trusted proxy (NUXT_TRUST_PROXY), use the forwarded client IP (docs/security.md).
+  const ip = getRequestIP(event, { xForwardedFor: useRuntimeConfig(event).trustProxy })
 
   const retryAfter = await getLoginBlock(email, ip)
   if (retryAfter !== null) {

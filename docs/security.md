@@ -50,10 +50,12 @@
 - **Blocking by email is intentional.** Someone who knows a staff email can lock
   that account out for up to 15 minutes. That's the trade-off for stopping password
   guessing; staff can wait, or have the count cleared.
-- **Behind a reverse proxy:** the IP used is the direct connection's
-  (`getRequestIP` without trusting `X-Forwarded-For`). Behind a proxy or load
-  balancer, every user would share the proxy's IP. Configure trusted forwarding
-  when the hosting target is chosen.
+- **Client IP and proxies:** by default the IP is the direct connection's. With
+  `NUXT_TRUST_PROXY=true`, it's taken from `X-Forwarded-For`. Only enable this
+  behind a proxy that **overwrites** that header, as Vercel does (ADR-009);
+  otherwise clients could spoof their IP.
+- **Search engines:** every response sends `X-Robots-Tag: noindex, nofollow`, and
+  `robots.txt` disallows everything.
 
 ## Open items
 - The data-protection law that applies to member data hasn't been identified yet.
